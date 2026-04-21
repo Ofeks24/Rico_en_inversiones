@@ -7,10 +7,10 @@ public class LoadingScreen extends JWindow {
 
     private float alpha = 0f;
     private Image logo;
-    private Main mainWindow;
+    private MainMenu mainMenu;
 
-    public LoadingScreen(Main mainWindow) {
-        this.mainWindow = mainWindow;
+    public LoadingScreen(MainMenu mainMenu) {
+        this.mainMenu = mainMenu;
 
         logo = new ImageIcon("res/logos/theIMPERIALOne(TEXTO)_logo (pequeño).png").getImage();
 
@@ -67,19 +67,18 @@ public class LoadingScreen extends JWindow {
                 repaint();
                 
                 timer.stop();
-                mainWindow.setVisible(true);
+                mainMenu.setVisible(true);
 
-                Timer espera = new Timer(1000, ev -> {
+                Timer espera = new Timer(3000, ev -> {
                 	setAlwaysOnTop(false);
-                	mainWindow.setVisible(true);
-                	mainWindow.toFront();
-                	mainWindow.requestFocus();
+                	mainMenu.setVisible(true);
+                	mainMenu.toFront();
+                	mainMenu.requestFocus();
 
                 	dispose();
 
-                	//mainWindow.iniciarMenuAnimado();
                 	new Timer(150, ex -> {
-                	    mainWindow.iniciarMenuAnimado();
+                		mainMenu.iniciarMenuAnimado();
                 	}).start();
                 	timer.setRepeats(false);
                 });

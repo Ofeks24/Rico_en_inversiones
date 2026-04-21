@@ -6,7 +6,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.*;
 
-public class Main extends JFrame {
+public class MainMenu extends JFrame {
 
     JLabel logo;
 
@@ -16,22 +16,22 @@ public class Main extends JFrame {
     
     Timer timer;
     
-    double speed = 1500; // px/segundo (ajustable)
+    double speed = 1200;
 
     long lastTime;
 
-    int delayB1 = 0;
-    int delayB2 = 200;
-    int delayB3 = 400;
-    //double speed = 600; // píxeles por segundo
+    int delayB1 = 500;
+    int delayB2 = 1000;
+    int delayB3 = 1500;
+
     
     
 
 
-    public Main() {
+    public MainMenu() {
 
 
-        setTitle("Main");
+        setTitle("Menu");
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setUndecorated(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -75,7 +75,7 @@ public class Main extends JFrame {
 
     private void iniciarAnimacion() {
 
-    	timer = new Timer(16, e -> { // ~60 FPS
+    	timer = new Timer(16, e -> {
 
             if (lastTime == 0) {
                 lastTime = System.nanoTime();
@@ -85,27 +85,28 @@ public class Main extends JFrame {
             double delta = (now - lastTime) / 1_000_000_000.0;
             lastTime = now;
 
-            double dx = speed * delta;
-
+            double buttonSpeed = speed * delta;
+            double logoSpeed = 2000 * delta;
+            
             long elapsed = System.currentTimeMillis();
 
-            // ================= LOGO =================
+
             if (logo.getY() < 80) {
                 logo.setLocation(
                         logo.getX(),
-                        logo.getY() + (int)(dx * 0.6) // más suave
+                        logo.getY() + (int)(logoSpeed)
                 );
             }
 
-            // ================= BOTONES (CASCADA) =================
 
-            if (elapsed > delayB1Start()) moverBoton(b1, 100, dx);
-            if (elapsed > delayB2Start()) moverBoton(b2, 100, dx);
-            if (elapsed > delayB3Start()) moverBoton(b3, 100, dx);
+
+            if (elapsed > delayB1Start()) moverBoton(b1, 100, buttonSpeed);
+            if (elapsed > delayB2Start()) moverBoton(b2, 100, buttonSpeed);
+            if (elapsed > delayB3Start()) moverBoton(b3, 100, buttonSpeed);
 
             repaint();
 
-            // ================= STOP =================
+
             if (logo.getY() >= 80 &&
                 b1.getX() >= 100 &&
                 b2.getX() >= 100 &&
@@ -144,7 +145,7 @@ public class Main extends JFrame {
                 newX = destinoX;
             }
 
-            // easing ligero (sensación más natural)
+
             int eased = b.getX() + (int)((newX - b.getX()) * 0.8);
 
             b.setLocation(eased, b.getY());
@@ -154,21 +155,8 @@ public class Main extends JFrame {
     public void iniciarMenuAnimado() {
         iniciarAnimacion();
     }
+    
+   
 
-    public static void main(String[] args) {
-
-        SwingUtilities.invokeLater(() -> {
-
-            
-            Main mainWindow = new Main();
-            mainWindow.setVisible(false);
-
-            LoadingScreen splash = new LoadingScreen(mainWindow);
-
-            splash.startAnimation();
-            
-
-        });
-
-    }
+    
 }
