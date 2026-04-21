@@ -6,23 +6,21 @@ import java.awt.event.ActionListener;
 
 import javax.swing.*;
 
+import tools.BotonAjustable;
+
 public class MainMenu extends JFrame {
 
     JLabel logo;
 
-    JButton b1;
-    JButton b2;
-    JButton b3;
+    BotonAjustable[] botones= {new BotonAjustable(new JButton(),500),
+    		new BotonAjustable(new JButton(),1000),
+    		new BotonAjustable(new JButton(),1500)};
     
     Timer timer;
     
     double speed = 1200;
 
     long lastTime;
-
-    int delayB1 = 500;
-    int delayB2 = 1000;
-    int delayB3 = 1500;
 
     
     
@@ -49,13 +47,13 @@ public class MainMenu extends JFrame {
         panel.add(logo);
 
         // BOTONES
-        b1 = crearBoton("Jugar", -300, 300);
-        b2 = crearBoton("Opciones", -300, 400);
-        b3 = crearBoton("Salir", -300, 500);
+        botones[0].setBoton(crearBoton("Empezar", -300, 300));
+        botones[1].setBoton(crearBoton("Opciones", -300, 400));
+        botones[2].setBoton(crearBoton("Salir", -300, 500));
 
-        panel.add(b1);
-        panel.add(b2);
-        panel.add(b3);
+        panel.add(botones[0].getBoton());
+        panel.add(botones[1].getBoton());
+        panel.add(botones[2].getBoton());
 
 
         setVisible(true);
@@ -64,11 +62,28 @@ public class MainMenu extends JFrame {
     private JButton crearBoton(String texto, int x, int y) {
 
         JButton b = new JButton(texto);
-        b.setBounds(x, y, 250, 60);
+        b.setBounds(x, y, 454, 75);
         b.setFocusPainted(false);
-
-        if(texto.equals("Salir"))
+        b.setBorderPainted(false);
+        b.setContentAreaFilled(false);
+        
+        if(texto.equals("Empezar")) {
+        	b.setIcon(new ImageIcon("res/sprites/Empezar(Normal).png"));
+        	b.setRolloverIcon(new ImageIcon("res/sprites/Empezar(Hover).png"));
+        	b.setPressedIcon(new ImageIcon("res/sprites/Empezar(Click).png"));
+        }
+        
+        if(texto.equals("Opciones")) {
+        	b.setIcon(new ImageIcon("res/sprites/Opciones(Normal).png"));
+        	b.setRolloverIcon(new ImageIcon("res/sprites/Opciones(Hover).png"));
+        	b.setPressedIcon(new ImageIcon("res/sprites/Opciones(Click).png"));
+        }
+        if(texto.equals("Salir")) {
+        	b.setIcon(new ImageIcon("res/sprites/Salir(Normal).png"));
+    		b.setRolloverIcon(new ImageIcon("res/sprites/Salir(Hover).png"));
+    		b.setPressedIcon(new ImageIcon("res/sprites/Salir(Click).png"));
             b.addActionListener(e -> System.exit(0));
+        }
 
         return b;
     }
@@ -100,17 +115,17 @@ public class MainMenu extends JFrame {
 
 
 
-            if (elapsed > delayB1Start()) moverBoton(b1, 100, buttonSpeed);
-            if (elapsed > delayB2Start()) moverBoton(b2, 100, buttonSpeed);
-            if (elapsed > delayB3Start()) moverBoton(b3, 100, buttonSpeed);
+            if (elapsed > delayB1Start()) moverBoton(botones[0].getBoton(), 100, buttonSpeed);
+            if (elapsed > delayB2Start()) moverBoton(botones[1].getBoton(), 100, buttonSpeed);
+            if (elapsed > delayB3Start()) moverBoton(botones[2].getBoton(), 100, buttonSpeed);
 
             repaint();
 
 
             if (logo.getY() >= 80 &&
-                b1.getX() >= 100 &&
-                b2.getX() >= 100 &&
-                b3.getX() >= 100) {
+            		botones[0].getBoton().getX() >= 100 &&
+            		botones[1].getBoton().getX() >= 100 &&
+            		botones[2].getBoton().getX() >= 100) {
 
                 timer.stop();
             }
@@ -124,15 +139,15 @@ public class MainMenu extends JFrame {
 
     private long delayB1Start() {
         if (startTime == 0) startTime = System.currentTimeMillis();
-        return startTime + delayB1;
+        return startTime + botones[0].getDelay();
     }
 
     private long delayB2Start() {
-        return startTime + delayB2;
+        return startTime + botones[1].getDelay();
     }
 
     private long delayB3Start() {
-        return startTime + delayB3;
+        return startTime + botones[2].getDelay();
     }
 
     private void moverBoton(JButton b, int destinoX, double dx) {
