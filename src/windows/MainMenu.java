@@ -10,6 +10,8 @@ import tools.BotonAjustable;
 
 public class MainMenu extends JFrame {
 
+	private GameWindow gameWindow;
+	
     JLabel logo;
 
     BotonAjustable[] botones= {new BotonAjustable(new JButton(),500),
@@ -26,7 +28,8 @@ public class MainMenu extends JFrame {
     
 
 
-    public MainMenu() {
+    public MainMenu(GameWindow gameWindow) {
+        this.gameWindow = gameWindow;
 
 
         setTitle("Menu");
@@ -71,6 +74,17 @@ public class MainMenu extends JFrame {
         	b.setIcon(new ImageIcon("res/sprites/Empezar(Normal).png"));
         	b.setRolloverIcon(new ImageIcon("res/sprites/Empezar(Hover).png"));
         	b.setPressedIcon(new ImageIcon("res/sprites/Empezar(Click).png"));
+        	b.addActionListener(e -> {
+        		new Timer(250, el -> {
+	        		setAlwaysOnTop(false);
+	            	gameWindow.setVisible(true);
+	            	gameWindow.toFront();
+	            	gameWindow.requestFocus();
+	            	new Timer(10, ex -> {
+	            		setVisible(false);
+	            	}).start();
+        		}).start();
+        	});
         }
         
         if(texto.equals("Opciones")) {

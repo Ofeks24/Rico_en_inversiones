@@ -6,21 +6,18 @@ public class MainThread {
 
 	public static void main(String[] args) {
 
-        SwingUtilities.invokeLater(() -> {
-        	
-        	GameWindow gameWindow = new GameWindow();
-            gameWindow.setVisible(false);
-            
-            MainMenu mainMenu = new MainMenu();
-            mainMenu.setVisible(false);
+		SwingUtilities.invokeLater(() -> {
 
-            LoadingScreen splash = new LoadingScreen(mainMenu);
-            
-            
-            splash.startAnimation();
-            
+		    GameWindow gameWindow = new GameWindow();
+		    gameWindow.setVisible(false);
 
-        });
+		    MainMenu mainMenu = new MainMenu(gameWindow);
+		    mainMenu.setVisible(false);
+
+		    LoadingScreen splash = new LoadingScreen(mainMenu);
+
+		    splash.startAnimation();
+		});
 
     }
 

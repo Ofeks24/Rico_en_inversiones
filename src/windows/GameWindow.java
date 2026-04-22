@@ -1,57 +1,42 @@
 package windows;
-
-import java.awt.Color;
-
-
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 
 public class GameWindow extends JFrame {
-	ImageIcon startIcon = new ImageIcon("res/logos/Doors(Closed).png");
-	JButton b1;
-	public GameWindow() {
-		setTitle("Main");
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-        setUndecorated(true);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLayout(null);
 
-        JPanel panel = new JPanel(null);
-        panel.setBackground(new Color(0, 130, 130));
-        setContentPane(panel);
-        
-        b1=crearBoton(startIcon,100,100);
-        b1.setRolloverIcon(new ImageIcon("res/logos/Doors(Open).png")); // al pasar el mouse
-        b1.setPressedIcon(new ImageIcon("res/logos/Doors(Closed).png"));  // al pulsar
-        b1.setBorderPainted(false);
-        b1.setContentAreaFilled(false);
-        b1.setFocusPainted(false);
-        b1.setOpaque(false);
-        
-	}
-	
-	private JButton crearBoton(String texto, int x, int y) {
+    public GameWindow() {
+        // Configuración básica de la ventana
+        setTitle("Ventana Pantalla Completa");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setUndecorated(true); // Quita bordes y barra de título
+        setExtendedState(JFrame.MAXIMIZED_BOTH); // Pantalla completa
 
-        JButton b = new JButton(texto);
-        b.setBounds(x, y, 250, 60);
-        b.setFocusPainted(false);
+        // Panel principal
+        JPanel panelPrincipal = new JPanel();
+        panelPrincipal.setLayout(new BorderLayout());
 
-        if(texto.equals("Salir"))
-            b.addActionListener(e -> System.exit(0));
+        // Rectángulo inferior
+        JPanel rectanguloInferior = new JPanel();
+        rectanguloInferior.setBackground(Color.BLUE); // Color sólido
+        rectanguloInferior.setPreferredSize(new Dimension(0, 120)); // Altura del rectángulo
 
-        return b;
-    }
-	private JButton crearBoton(ImageIcon imagen, int x, int y) {
+        // Botón para cerrar
+        JButton botonSalir = new JButton("Salir");
+        botonSalir.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
 
-        JButton b = new JButton(imagen);
-        b.setBounds(x, y, 250, 60);
-        b.setFocusPainted(false);
+        rectanguloInferior.setLayout(new GridBagLayout());
+        rectanguloInferior.add(botonSalir);
 
-        //if(texto.equals("Salir"))
-        b.addActionListener(e -> System.exit(0));
+        // Añadir componentes
+        panelPrincipal.add(rectanguloInferior, BorderLayout.SOUTH);
 
-        return b;
+        add(panelPrincipal);
+        setVisible(true);
     }
 }
