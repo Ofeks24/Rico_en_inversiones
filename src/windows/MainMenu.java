@@ -1,39 +1,65 @@
 package windows;
 
 import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.*;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Random;
-
 import javax.swing.*;
 
 import tools.BotonAjustable;
 
 public class MainMenu extends JFrame {
+	
 
     private GameWindow gameWindow;
 
-    JLabel logo;
+    // ==========================
+    // UI ELEMENTS
+    // ==========================
+    private JLabel logo;
 
-    BotonAjustable[] botones = {
+    private final BotonAjustable[] botones = {
             new BotonAjustable(new JButton(), 500),
             new BotonAjustable(new JButton(), 1000),
             new BotonAjustable(new JButton(), 1500)
     };
 
-    Timer timer;
-    double speed = 1200;
-    long lastTime;
+    // ==========================
+    // TIMERS (Swing-safe)
+    // ==========================
+    private Timer animationTimer;
+    private Timer graphTimer;
 
-    // ==========================
-    // HILO SECUNDARIO GRÁFICA
-    // ==========================
-    private GraphBackgroundPanel graphPanel;
-    private Thread graphThread;
+    private double speed = 1200;
+    private long lastTime;
+    private long startTime;
+
     private volatile boolean running = true;
 
+    // ==========================
+    // PANEL
+    // ==========================
+    private GraphBackgroundPanel graphPanel;
+
+    // ==========================
+    // ICON CACHE
+    // ==========================
+    private final ImageIcon logoIcon = new ImageIcon("res/logos/Rico en inversiones_logo.png");
+
+    private final ImageIcon empezarN = new ImageIcon("res/sprites/Empezar(Normal).png");
+    private final ImageIcon empezarH = new ImageIcon("res/sprites/Empezar(Hover).png");
+    private final ImageIcon empezarC = new ImageIcon("res/sprites/Empezar(Click).png");
+
+    private final ImageIcon opcionesN = new ImageIcon("res/sprites/Opciones(Normal).png");
+    private final ImageIcon opcionesH = new ImageIcon("res/sprites/Opciones(Hover).png");
+    private final ImageIcon opcionesC = new ImageIcon("res/sprites/Opciones(Click).png");
+
+    private final ImageIcon salirN = new ImageIcon("res/sprites/Salir(Normal).png");
+    private final ImageIcon salirH = new ImageIcon("res/sprites/Salir(Hover).png");
+    private final ImageIcon salirC = new ImageIcon("res/sprites/Salir(Click).png");
+
+    // ==========================
+    // INIT
+    // ==========================
     public MainMenu(GameWindow gameWindow) {
 
         this.gameWindow = gameWindow;
@@ -42,20 +68,27 @@ public class MainMenu extends JFrame {
         setExtendedState(JFrame.MAXIMIZED_BOTH);
         setUndecorated(true);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setLayout(null);
 
         graphPanel = new GraphBackgroundPanel();
         graphPanel.setLayout(null);
         setContentPane(graphPanel);
 
+        initUI();
+        initTimers();
+
+        setVisible(true);
+    }
+
+    // ==========================
+    // UI SETUP
+    // ==========================
+    private void initUI() {
+
         // LOGO
-        logo = new JLabel(new ImageIcon("res/logos/Rico en inversiones_logo.png"));
-        logo.setBounds(
-                700,
-                -1000,
-                new ImageIcon("res/logos/Rico en inversiones_logo.png").getIconWidth(),
-                new ImageIcon("res/logos/Rico en inversiones_logo.png").getIconHeight()
-        );
+        logo = new JLabel(logoIcon);
+        logo.setBounds(700, -1000,
+                logoIcon.getIconWidth(),
+                logoIcon.getIconHeight());
 
         graphPanel.add(logo);
 
@@ -67,155 +100,137 @@ public class MainMenu extends JFrame {
         graphPanel.add(botones[0].getBoton());
         graphPanel.add(botones[1].getBoton());
         graphPanel.add(botones[2].getBoton());
-
-        iniciarGraficaThread();
-
-        setVisible(true);
     }
 
-    // =====================================
-    // SEGUNDO HILO PARA ACTUALIZAR GRÁFICA
-    // =====================================
-    private void iniciarGraficaThread() {
-
-        graphThread = new Thread(() -> {
-
-            while (running) {
-
-                graphPanel.updateGraph();
-
-                SwingUtilities.invokeLater(() -> graphPanel.repaint());
-
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException e) {
-                    break;
-                }
-            }
-
-        });
-
-        graphThread.setDaemon(true);
-        graphThread.start();
-    }
-
+    // ==========================
+    // BUTTON FACTORY
+    // ==========================
     private JButton crearBoton(String texto, int x, int y) {
 
         JButton b = new JButton(texto);
         b.setBounds(x, y, 454, 75);
+
         b.setFocusPainted(false);
         b.setBorderPainted(false);
         b.setContentAreaFilled(false);
 
-        if (texto.equals("Empezar")) {
+        switch (texto) {
 
-            b.setIcon(new ImageIcon("res/sprites/Empezar(Normal).png"));
-            b.setRolloverIcon(new ImageIcon("res/sprites/Empezar(Hover).png"));
-            b.setPressedIcon(new ImageIcon("res/sprites/Empezar(Click).png"));
+            case "Empezar":
+                b.setIcon(empezarN);
+                b.setRolloverIcon(empezarH);
+                b.setPressedIcon(empezarC);
 
-            b.addActionListener(e -> {
+                b.addActionListener(e -> {
+                    Timer t = new Timer(250, ev -> {
+                        //t.stop();
 
-                new Timer(250, el -> {
+                        setAlwaysOnTop(false);
+                        gameWindow.setVisible(true);
+                        gameWindow.toFront();
+                        gameWindow.requestFocus();
 
-                    setAlwaysOnTop(false);
-                    gameWindow.setVisible(true);
-                    gameWindow.toFront();
-                    gameWindow.requestFocus();
+                        Timer hide = new Timer(10, ex -> setVisible(false));
+                        hide.setRepeats(false);
+                        hide.start();
+                    });
+                    t.setRepeats(false);
+                    t.start();
+                });
+            break;
 
-                    new Timer(10, ex -> setVisible(false)).start();
+            case "Opciones":
+                b.setIcon(opcionesN);
+                b.setRolloverIcon(opcionesH);
+                b.setPressedIcon(opcionesC);
+            break;
 
-                }).start();
-            });
-        }
+            case "Salir":
+                b.setIcon(salirN);
+                b.setRolloverIcon(salirH);
+                b.setPressedIcon(salirC);
 
-        if (texto.equals("Opciones")) {
-
-            b.setIcon(new ImageIcon("res/sprites/Opciones(Normal).png"));
-            b.setRolloverIcon(new ImageIcon("res/sprites/Opciones(Hover).png"));
-            b.setPressedIcon(new ImageIcon("res/sprites/Opciones(Click).png"));
-        }
-
-        if (texto.equals("Salir")) {
-
-            b.setIcon(new ImageIcon("res/sprites/Salir(Normal).png"));
-            b.setRolloverIcon(new ImageIcon("res/sprites/Salir(Hover).png"));
-            b.setPressedIcon(new ImageIcon("res/sprites/Salir(Click).png"));
-
-            b.addActionListener(e -> {
-                running = false;
-                System.exit(0);
-            });
+                b.addActionListener(e -> {
+                    running = false;
+                    System.exit(0);
+                });
+            break;
         }
 
         return b;
     }
 
     // ==========================
-    // ANIMACIÓN MENÚ
+    // TIMERS INIT
     // ==========================
-    private void iniciarAnimacion() {
+    private void initTimers() {
 
-        timer = new Timer(16, e -> {
+        // ANIMACIÓN UI (16ms ~ 60fps)
+        animationTimer = new Timer(16, e -> updateAnimation());
+        animationTimer.start();
 
-            if (lastTime == 0) lastTime = System.nanoTime();
-
-            long now = System.nanoTime();
-            double delta = (now - lastTime) / 1_000_000_000.0;
-            lastTime = now;
-
-            double buttonSpeed = speed * delta;
-            double logoSpeed = 2000 * delta;
-
-            long elapsed = System.currentTimeMillis();
-
-            if (logo.getY() < 80) {
-                logo.setLocation(
-                        logo.getX(),
-                        logo.getY() + (int) logoSpeed
-                );
-            }
-
-            if (elapsed > delayB1Start()) moverBoton(botones[0].getBoton(), 100, buttonSpeed);
-            if (elapsed > delayB2Start()) moverBoton(botones[1].getBoton(), 100, buttonSpeed);
-            if (elapsed > delayB3Start()) moverBoton(botones[2].getBoton(), 100, buttonSpeed);
-
-            repaint();
-
-            if (logo.getY() >= 80 &&
-                    botones[0].getBoton().getX() >= 100 &&
-                    botones[1].getBoton().getX() >= 100 &&
-                    botones[2].getBoton().getX() >= 100) {
-
-                timer.stop();
-            }
-
+        // GRÁFICA (actualización separada)
+        graphTimer = new Timer(500, e -> {
+            graphPanel.updateGraph();
+            graphPanel.repaint();
         });
-
-        timer.start();
+        graphTimer.start();
     }
 
-    private long startTime;
+    // ==========================
+    // ANIMATION LOGIC
+    // ==========================
+    private void updateAnimation() {
 
-    private long delayB1Start() {
+        if (lastTime == 0) lastTime = System.nanoTime();
+
+        long now = System.nanoTime();
+        double delta = (now - lastTime) / 1_000_000_000.0;
+        lastTime = now;
+
+        double buttonSpeed = speed * delta;
+        double logoSpeed = 2000 * delta;
+
+        long elapsed = System.currentTimeMillis();
+
+        if (logo.getY() < 80) {
+            logo.setLocation(logo.getX(), logo.getY() + (int) logoSpeed);
+        }
+
+        if (elapsed > delayB1()) mover(botones[0].getBoton(), 100, buttonSpeed);
+        if (elapsed > delayB2()) mover(botones[1].getBoton(), 100, buttonSpeed);
+        if (elapsed > delayB3()) mover(botones[2].getBoton(), 100, buttonSpeed);
+
+        repaint();
+
+        if (logo.getY() >= 80 &&
+                botones[0].getBoton().getX() >= 100 &&
+                botones[1].getBoton().getX() >= 100 &&
+                botones[2].getBoton().getX() >= 100) {
+
+            animationTimer.stop();
+        }
+    }
+
+    private long delayB1() {
         if (startTime == 0) startTime = System.currentTimeMillis();
         return startTime + botones[0].getDelay();
     }
 
-    private long delayB2Start() {
+    private long delayB2() {
         return startTime + botones[1].getDelay();
     }
 
-    private long delayB3Start() {
+    private long delayB3() {
         return startTime + botones[2].getDelay();
     }
 
-    private void moverBoton(JButton b, int destinoX, double dx) {
+    private void mover(JButton b, int targetX, double dx) {
 
-        if (b.getX() < destinoX) {
+        if (b.getX() < targetX) {
 
             int newX = (int) (b.getX() + dx);
-
-            if (newX > destinoX) newX = destinoX;
+            if (newX > targetX) newX = targetX;
 
             int eased = b.getX() + (int) ((newX - b.getX()) * 0.8);
 
@@ -224,42 +239,137 @@ public class MainMenu extends JFrame {
     }
 
     public void iniciarMenuAnimado() {
-        iniciarAnimacion();
+        animationTimer.start();
+    }
+    
+    
+    class Candle {
+        double open;
+        double high;
+        double low;
+        double close;
+
+        Candle(double open, double high, double low, double close) {
+            this.open = open;
+            this.high = high;
+            this.low = low;
+            this.close = close;
+        }
     }
 
     // =====================================================
-    // PANEL FONDO CON GRÁFICA DIFUMINADA
+    // GRAPH PANEL (REFINED - NO RANDOM IN PAINT)
     // =====================================================
     class GraphBackgroundPanel extends JPanel {
 
-        private ArrayList<Double> values = new ArrayList<>();
-        private Random r = new Random();
+        private ArrayList<Candle> candles = new ArrayList<>();
+        private final Random r = new Random();
+
+        // TRADING STATE (IMPORTANTE: NO LO SOBRESCRIBAS EN PAINT)
+        private double scaleX = 18;
+        private double scaleY = 2.2;
+        private double offsetX = 0;
+
+        private int lastMouseX;
+        private boolean dragging = false;
 
         public GraphBackgroundPanel() {
 
             setBackground(new Color(15, 15, 15));
 
+            double price = 400;
+
             for (int i = 0; i < 120; i++) {
-                values.add(400.0);
+
+                double open = price;
+
+                double drift = (r.nextDouble() * 30 - 15);
+                double close = open + drift;
+
+                double high = Math.max(open, close) + r.nextDouble() * 20;
+                double low = Math.min(open, close) - r.nextDouble() * 20;
+
+                candles.add(new Candle(open, high, low, close));
+
+                price = close; // continuidad de mercado
             }
+
+            initMouseControls();
         }
 
+        // ==========================
+        // DATA
+        // ==========================
         public void updateGraph() {
 
-            double last = values.get(values.size() - 1);
+            double lastClose = candles.get(candles.size() - 1).close;
 
-            double next = last + (r.nextDouble() * 40 - 20);
+            double open = lastClose;
 
-            if (next < 100) next = 100;
-            if (next > getHeight() - 100) next = getHeight() - 100;
+            double drift = (r.nextDouble() * 30 - 15);
+            double close = open + drift;
 
-            values.add(next);
+            double high = Math.max(open, close) + r.nextDouble() * 15;
+            double low = Math.min(open, close) - r.nextDouble() * 15;
 
-            if (values.size() > 160) {
-                values.remove(0);
+            candles.add(new Candle(open, high, low, close));
+
+            if (candles.size() > 120) {
+                candles.remove(0);
             }
         }
 
+        // ==========================
+        // INPUT (ZOOM + PAN)
+        // ==========================
+        private void initMouseControls() {
+
+            addMouseWheelListener(e -> {
+
+                double factor = (e.getPreciseWheelRotation() < 0) ? 1.1 : 0.9;
+
+                if (e.isShiftDown()) {
+                    scaleY *= factor;
+                    scaleY = Math.max(0.5, Math.min(scaleY, 5));
+                } 
+
+                repaint();
+            });
+
+            /*addMouseListener(new java.awt.event.MouseAdapter() {
+
+                @Override
+                public void mousePressed(java.awt.event.MouseEvent e) {
+                    dragging = true;
+                    lastMouseX = e.getX();
+                }
+
+                @Override
+                public void mouseReleased(java.awt.event.MouseEvent e) {
+                    dragging = false;
+                
+            });
+
+            addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+
+                @Override
+                public void mouseDragged(java.awt.event.MouseEvent e) {
+
+                    if (!dragging) return;
+
+                    int dx = e.getX() - lastMouseX;
+                    lastMouseX = e.getX();
+
+                    offsetX += dx;
+
+                    repaint();
+                }
+            });}*/
+        }
+
+        // ==========================
+        // DRAW
+        // ==========================
         @Override
         protected void paintComponent(Graphics g) {
 
@@ -274,60 +384,66 @@ public class MainMenu extends JFrame {
 
             int w = getWidth();
             int h = getHeight();
+            double centerY = h / 2.0;
 
-            g2.setColor(new Color(20,20,20));
-            g2.fillRect(0,0,w+100,h+100);
+            // BACKGROUND
+            g2.setColor(new Color(15, 15, 15));
+            g2.fillRect(0, 0, w, h);
 
-            double step = (double) w / (values.size() - 1);
+            // ==========================
+            // GRID
+            // ==========================
+            g2.setColor(new Color(255, 255, 255, 15));
+            g2.setStroke(new BasicStroke(1f));
 
-            // líneas difuminadas múltiples pasadas
-            for (int blur = 12; blur >= 1; blur--) {
+            for (int y = 100; y < h; y += 100)
+                g2.drawLine(0, y, w, y);
 
-                for (int i = 1; i < values.size(); i++) {
+            // ==========================
+            // CANDLES
+            // ==========================
+            int startX = (int) offsetX;
 
-                    int x1 = (int)((i - 1) * step);
-                    int y1 = values.get(i - 1).intValue();
+            for (int i = 0; i < candles.size(); i++) {
 
-                    int x2 = (int)(i * step);
-                    int y2 = values.get(i).intValue();
+                Candle c = candles.get(i);
 
-                    boolean subida = y2 < y1;
+                int x = startX + (int)(i * scaleX);
 
-                    Color c;
+                if (x < -100 || x > w + 100) continue;
 
-                    if (subida)
-                        c = new Color(0, 255, 100, 10);
-                    else
-                        c = new Color(255, 60, 60, 10);
+                int openY  = (int)(centerY - (c.open  - 400) * scaleY);
+                int closeY = (int)(centerY - (c.close - 400) * scaleY);
+                int highY  = (int)(centerY - (c.high  - 400) * scaleY);
+                int lowY   = (int)(centerY - (c.low   - 400) * scaleY);
 
-                    g2.setColor(c);
-                    g2.setStroke(new BasicStroke(blur));
-                    g2.drawLine(x1, y1, x2, y2);
-                }
-            }
+                boolean bullish = c.close >= c.open;
 
-            // línea principal
-            for (int i = 1; i < values.size(); i++) {
+                g2.setColor(bullish
+                        ? new Color(0, 255, 140)
+                        : new Color(255, 80, 80));
 
-                int x1 = (int)((i - 1) * step);
-                int y1 = values.get(i - 1).intValue();
+                // WICK
+                g2.setStroke(new BasicStroke(2f));
+                g2.drawLine(x, highY, x, lowY);
 
-                int x2 = (int)(i * step);
-                int y2 = values.get(i).intValue();
+                // BODY
+                int bodyTop = Math.min(openY, closeY);
+                int bodyHeight = Math.abs(openY - closeY);
 
-                boolean subida = y2 < y1;
+                if (bodyHeight < 2) bodyHeight = 2;
 
-                if (subida)
-                    g2.setColor(new Color(0,255,120,90));
-                else
-                    g2.setColor(new Color(255,80,80,90));
-
-                g2.setStroke(new BasicStroke(3f));
-                g2.drawLine(x1, y1, x2, y2);
+                g2.fillRoundRect(
+                        x - 5,
+                        bodyTop,
+                        10,
+                        bodyHeight,
+                        4,
+                        4
+                );
             }
 
             g2.dispose();
         }
     }
 }
-
