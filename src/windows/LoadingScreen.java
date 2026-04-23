@@ -69,7 +69,7 @@ public class LoadingScreen extends JWindow {
                 timer.stop();
                 mainMenu.setVisible(true);
 
-                Timer espera = new Timer(3000, ev -> {
+                Timer espera = new Timer(2000, ev -> {
                 	setAlwaysOnTop(false);
                 	mainMenu.setVisible(true);
                 	mainMenu.toFront();

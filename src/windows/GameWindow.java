@@ -1,40 +1,53 @@
 package windows;
 import javax.swing.*;
+
+import tools.Utils;
+
 import java.awt.*;
 import java.awt.event.*;
 
 public class GameWindow extends JFrame {
 
     public GameWindow() {
-        // Configuración básica de la ventana
+
         setTitle("Ventana Pantalla Completa");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setUndecorated(true); // Quita bordes y barra de título
-        setExtendedState(JFrame.MAXIMIZED_BOTH); // Pantalla completa
+        setUndecorated(true);
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
-        // Panel principal
+
         JPanel panelPrincipal = new JPanel();
         panelPrincipal.setLayout(new BorderLayout());
+        panelPrincipal.setBackground(new Color(85, 171, 170));
 
-        // Rectángulo inferior
+
         JPanel rectanguloInferior = new JPanel();
-        rectanguloInferior.setBackground(Color.BLUE); // Color sólido
-        rectanguloInferior.setPreferredSize(new Dimension(0, 120)); // Altura del rectángulo
+        rectanguloInferior.setBackground(new Color(195, 199, 200));
+        rectanguloInferior.setPreferredSize(new Dimension(0, 90));
+        rectanguloInferior.setLayout(new SpringLayout());
+        
 
-        // Botón para cerrar
-        JButton botonSalir = new JButton("Salir");
+
+
+        JButton botonSalir = new JButton(Utils.escalarIcono(new ImageIcon("res/logos/Doors(Closed).png"), 50));
+        botonSalir.setRolloverIcon(Utils.escalarIcono(new ImageIcon("res/logos/Doors(Open).png"), 50));
+        botonSalir.setPressedIcon(Utils.escalarIcono(new ImageIcon("res/logos/Doors(Open).png"), 50));
         botonSalir.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 System.exit(0);
             }
         });
+        botonSalir.setBorderPainted(false);
+        botonSalir.setContentAreaFilled(false);
+        botonSalir.setFocusPainted(false);
+        botonSalir.setOpaque(false);  
 
         rectanguloInferior.setLayout(new GridBagLayout());
         rectanguloInferior.add(botonSalir);
 
-        // Añadir componentes
         panelPrincipal.add(rectanguloInferior, BorderLayout.SOUTH);
+        
 
         add(panelPrincipal);
         setVisible(true);

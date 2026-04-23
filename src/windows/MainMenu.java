@@ -12,9 +12,7 @@ public class MainMenu extends JFrame {
 
     private GameWindow gameWindow;
 
-    // ==========================
-    // UI ELEMENTS
-    // ==========================
+
     private JLabel logo;
 
     private final BotonAjustable[] botones = {
@@ -23,9 +21,7 @@ public class MainMenu extends JFrame {
             new BotonAjustable(new JButton(), 1500)
     };
 
-    // ==========================
-    // TIMERS (Swing-safe)
-    // ==========================
+
     private Timer animationTimer;
     private Timer graphTimer;
 
@@ -35,14 +31,10 @@ public class MainMenu extends JFrame {
 
     private volatile boolean running = true;
 
-    // ==========================
-    // PANEL
-    // ==========================
+
     private GraphBackgroundPanel graphPanel;
 
-    // ==========================
-    // ICON CACHE
-    // ==========================
+
     private final ImageIcon logoIcon = new ImageIcon("res/logos/Rico en inversiones_logo.png");
 
     private final ImageIcon empezarN = new ImageIcon("res/sprites/Empezar(Normal).png");
@@ -57,9 +49,7 @@ public class MainMenu extends JFrame {
     private final ImageIcon salirH = new ImageIcon("res/sprites/Salir(Hover).png");
     private final ImageIcon salirC = new ImageIcon("res/sprites/Salir(Click).png");
 
-    // ==========================
-    // INIT
-    // ==========================
+
     public MainMenu(GameWindow gameWindow) {
 
         this.gameWindow = gameWindow;
@@ -79,12 +69,9 @@ public class MainMenu extends JFrame {
         setVisible(true);
     }
 
-    // ==========================
-    // UI SETUP
-    // ==========================
+
     private void initUI() {
 
-        // LOGO
         logo = new JLabel(logoIcon);
         logo.setBounds(700, -1000,
                 logoIcon.getIconWidth(),
@@ -92,7 +79,6 @@ public class MainMenu extends JFrame {
 
         graphPanel.add(logo);
 
-        // BOTONES
         botones[0].setBoton(crearBoton("Empezar", -300, 300));
         botones[1].setBoton(crearBoton("Opciones", -300, 400));
         botones[2].setBoton(crearBoton("Salir", -300, 500));
@@ -102,9 +88,7 @@ public class MainMenu extends JFrame {
         graphPanel.add(botones[2].getBoton());
     }
 
-    // ==========================
-    // BUTTON FACTORY
-    // ==========================
+
     private JButton crearBoton(String texto, int x, int y) {
 
         JButton b = new JButton(texto);
@@ -123,7 +107,6 @@ public class MainMenu extends JFrame {
 
                 b.addActionListener(e -> {
                     Timer t = new Timer(250, ev -> {
-                        //t.stop();
 
                         setAlwaysOnTop(false);
                         gameWindow.setVisible(true);
@@ -160,16 +143,12 @@ public class MainMenu extends JFrame {
         return b;
     }
 
-    // ==========================
-    // TIMERS INIT
-    // ==========================
+
     private void initTimers() {
 
-        // ANIMACIÓN UI (16ms ~ 60fps)
         animationTimer = new Timer(16, e -> updateAnimation());
         animationTimer.start();
 
-        // GRÁFICA (actualización separada)
         graphTimer = new Timer(500, e -> {
             graphPanel.updateGraph();
             graphPanel.repaint();
@@ -177,9 +156,7 @@ public class MainMenu extends JFrame {
         graphTimer.start();
     }
 
-    // ==========================
-    // ANIMATION LOGIC
-    // ==========================
+
     private void updateAnimation() {
 
         if (lastTime == 0) lastTime = System.nanoTime();
@@ -257,15 +234,13 @@ public class MainMenu extends JFrame {
         }
     }
 
-    // =====================================================
-    // GRAPH PANEL (REFINED - NO RANDOM IN PAINT)
-    // =====================================================
+
     class GraphBackgroundPanel extends JPanel {
 
         private ArrayList<Candle> candles = new ArrayList<>();
         private final Random r = new Random();
 
-        // TRADING STATE (IMPORTANTE: NO LO SOBRESCRIBAS EN PAINT)
+
         private double scaleX = 18;
         private double scaleY = 2.2;
         private double offsetX = 0;
@@ -291,15 +266,13 @@ public class MainMenu extends JFrame {
 
                 candles.add(new Candle(open, high, low, close));
 
-                price = close; // continuidad de mercado
+                price = close;
             }
 
             initMouseControls();
         }
 
-        // ==========================
-        // DATA
-        // ==========================
+
         public void updateGraph() {
 
             double lastClose = candles.get(candles.size() - 1).close;
@@ -319,9 +292,7 @@ public class MainMenu extends JFrame {
             }
         }
 
-        // ==========================
-        // INPUT (ZOOM + PAN)
-        // ==========================
+
         private void initMouseControls() {
 
             addMouseWheelListener(e -> {
@@ -367,9 +338,7 @@ public class MainMenu extends JFrame {
             });}*/
         }
 
-        // ==========================
-        // DRAW
-        // ==========================
+
         @Override
         protected void paintComponent(Graphics g) {
 
@@ -386,22 +355,18 @@ public class MainMenu extends JFrame {
             int h = getHeight();
             double centerY = h / 2.0;
 
-            // BACKGROUND
+
             g2.setColor(new Color(15, 15, 15));
             g2.fillRect(0, 0, w, h);
 
-            // ==========================
-            // GRID
-            // ==========================
+
             g2.setColor(new Color(255, 255, 255, 15));
             g2.setStroke(new BasicStroke(1f));
 
             for (int y = 100; y < h; y += 100)
                 g2.drawLine(0, y, w, y);
 
-            // ==========================
-            // CANDLES
-            // ==========================
+
             int startX = (int) offsetX;
 
             for (int i = 0; i < candles.size(); i++) {
@@ -423,11 +388,11 @@ public class MainMenu extends JFrame {
                         ? new Color(0, 255, 140)
                         : new Color(255, 80, 80));
 
-                // WICK
+
                 g2.setStroke(new BasicStroke(2f));
                 g2.drawLine(x, highY, x, lowY);
 
-                // BODY
+
                 int bodyTop = Math.min(openY, closeY);
                 int bodyHeight = Math.abs(openY - closeY);
 
