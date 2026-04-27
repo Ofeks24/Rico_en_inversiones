@@ -13,7 +13,8 @@ public class Utils {
 		return null;
 	}
 	
-	public static ImageIcon escalarIcono(ImageIcon imagen, int factor) {
+	public static ImageIcon escalarIcono(String ruta, int factor) {
+		ImageIcon imagen= new ImageIcon(ruta);
 		int anchoOriginal = imagen.getIconWidth();
 	    int altoOriginal = imagen.getIconHeight();
 
