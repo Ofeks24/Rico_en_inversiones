@@ -7,7 +7,7 @@ import javax.swing.*;
 
 import tools.BotonAjustable;
 
-public class MainMenu extends JFrame {
+public class MainMenu extends JPanel {
 	
 
     private GameWindow gameWindow;

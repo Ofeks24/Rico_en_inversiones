@@ -7,7 +7,7 @@ import tools.Utils;
 import java.awt.*;
 import java.awt.event.*;
 
-public class GameWindow extends JFrame {
+public class GameWindow extends JPanel {
 	
 	private JPanel iconoSeleccionado = null;
 
@@ -21,6 +21,7 @@ public class GameWindow extends JFrame {
         // Panel principal con GridBagLayout
         JPanel root = new JPanel(new GridBagLayout());
         setContentPane(root);
+        setUndecorated(true);
 
         GridBagConstraints gbc = new GridBagConstraints();
 
@@ -55,6 +56,9 @@ public class GameWindow extends JFrame {
         JButton inicio = new JButton(Utils.escalarIcono("res/logos/Doors(Closed).png", 25));
         inicio.setRolloverIcon(Utils.escalarIcono("res/logos/Doors(Open).png", 25));
         inicio.setPressedIcon(Utils.escalarIcono("res/logos/Doors(Open).png", 25));
+        inicio.addActionListener(e->{
+        	System.exit(0);
+        });
         inicio.setFocusPainted(false);
         inicio.setBorderPainted(false);
         inicio.setContentAreaFilled(false);
