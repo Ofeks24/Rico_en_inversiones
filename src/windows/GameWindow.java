@@ -1,41 +1,43 @@
 package windows;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+import tools.Clock;
+import tools.DesktopGridLayout;
 import tools.Utils;
 
 import java.awt.*;
 import java.awt.event.*;
 
 public class GameWindow extends JPanel {
-	
-	private JPanel iconoSeleccionado = null;
 
-    public GameWindow() {
+    private JPanel iconoSeleccionado = null;
+    private Clock time;
 
+    public GameWindow(Runnable exit, Clock time) {
 
-        setTitle("Escritorio Simulado");
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
-
-        // Panel principal con GridBagLayout
+        //setLayout(new GridBagLayout());
+    	this.time=time;
         JPanel root = new JPanel(new GridBagLayout());
-        setContentPane(root);
-        setUndecorated(true);
+        setLayout(new BorderLayout());
+        add(root, BorderLayout.CENTER);
+        //root.setOpaque(true);
+        //setOpaque(true);
 
         GridBagConstraints gbc = new GridBagConstraints();
 
         // =================================================
-        // FONDO DEL ESCRITORIO
+        // ESCRITORIO (FONDO)
         // =================================================
-        JPanel escritorio = new JPanel(null);
-        escritorio.setBackground(new Color(85, 171, 170)); // azul escritorio
+        JPanel escritorio = new JPanel();
+        escritorio.setLayout(new DesktopGridLayout());
+        escritorio.setBackground(new Color(85, 171, 170));
 
-        // Iconos simulados
-        escritorio.add(crearIcono("Mi PC", Utils.escalarIcono("res/logos/Doors(Closed).png", 50), 40, 40));
-        escritorio.add(crearIcono("Documentos", Utils.escalarIcono("res/logos/Doors(Closed).png", 50), 40, 150));
-        escritorio.add(crearIcono("Internet", Utils.escalarIcono("res/logos/Doors(Closed).png", 50), 40, 260));
-        escritorio.add(crearIcono("Papelera", Utils.escalarIcono("res/logos/Doors(Closed).png", 50), 40, 370));
+        escritorio.add(crearIcono("Mi PC", Utils.escalarIcono("res/logos/Doors(Closed).png", 50)));
+        escritorio.add(crearIcono("Documentos", Utils.escalarIcono("res/logos/Doors(Closed).png", 50)));
+        escritorio.add(crearIcono("Internet", Utils.escalarIcono("res/logos/Doors(Closed).png", 50)));
+        escritorio.add(crearIcono("Papelera", Utils.escalarIcono("res/logos/Doors(Closed).png", 50)));
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -56,13 +58,16 @@ public class GameWindow extends JPanel {
         JButton inicio = new JButton(Utils.escalarIcono("res/logos/Doors(Closed).png", 25));
         inicio.setRolloverIcon(Utils.escalarIcono("res/logos/Doors(Open).png", 25));
         inicio.setPressedIcon(Utils.escalarIcono("res/logos/Doors(Open).png", 25));
-        inicio.addActionListener(e->{
-        	System.exit(0);
+
+        inicio.addActionListener(e -> {
+            if (exit != null) exit.run();
         });
+
         inicio.setFocusPainted(false);
         inicio.setBorderPainted(false);
         inicio.setContentAreaFilled(false);
-        inicio.setOpaque(false);  
+        inicio.setOpaque(false);
+
         barra.add(inicio, BorderLayout.WEST);
 
         // Zona central
@@ -76,10 +81,48 @@ public class GameWindow extends JPanel {
         barra.add(centroBarra, BorderLayout.CENTER);
 
         // Hora
-        JLabel hora = new JLabel("12:45");
-        hora.setForeground(Color.WHITE);
+        JLabel hora = new JLabel();
+        JLabel fecha = new JLabel();
+        hora.setForeground(Color.BLACK);
         hora.setBorder(new EmptyBorder(0, 0, 0, 15));
-        barra.add(hora, BorderLayout.EAST);
+        fecha.setForeground(Color.BLACK);
+        fecha.setBorder(new EmptyBorder(0, 0, 0, 15));
+
+        // actualización inicial
+        hora.setText(String.format(
+    	    "%02d:%02d",
+    	    time.getHour(),
+    	    time.getMinute()
+    	));
+        fecha.setText(String.format(
+    	    "%02d/%02d/%04d",
+    	    time.getDay(),
+    	    time.getMonth(),
+    	    time.getYear()
+    	));
+
+        // escuchar cambios
+        time.addListener(() -> {
+            hora.setText(String.format(
+        	    "%02d:%02d",
+        	    time.getHour(),
+        	    time.getMinute()
+        	));
+            fecha.setText(String.format(
+        	    "%02d/%02d/%04d",
+        	    time.getDay(),
+        	    time.getMonth(),
+        	    time.getYear()
+        	));
+        });
+
+        JPanel panelHora = new JPanel(new GridLayout(2,1));
+        panelHora.setOpaque(false);
+
+        panelHora.add(hora);
+        panelHora.add(fecha);
+
+        barra.add(panelHora, BorderLayout.EAST);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -89,19 +132,18 @@ public class GameWindow extends JPanel {
 
         root.add(barra, gbc);
 
-        setVisible(true);
+        add(root);
     }
 
     // =====================================================
     // ICONO DE ESCRITORIO
     // =====================================================
-    private JPanel crearIcono(String texto, ImageIcon imagen, int x, int y) {
+    private JPanel crearIcono(String texto, ImageIcon imagen) {
 
         JPanel p = new JPanel();
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
-        p.setBounds(x, y, 90, 90);
         p.setOpaque(true);
-        p.setBackground(new Color(0,0,0,0));
+        p.setBackground(new Color(0, 0, 0, 0));
 
         JLabel icono = new JLabel(imagen);
         icono.setAlignmentX(Component.CENTER_ALIGNMENT);

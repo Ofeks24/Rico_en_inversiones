@@ -10,11 +10,13 @@ public class LoadingScreen extends JPanel {
     private Runnable onFinish; // callback para cambiar de pantalla
 
     public LoadingScreen(Runnable onFinish) {
+    	//setOpaque(false);
         this.onFinish = onFinish;
 
-        logo = new ImageIcon("res/logos/theIMPERIALOne(TEXTO)_logo (pequeño).png").getImage();
-
-        setBackground(Color.BLACK);
+        logo = new ImageIcon(
+        	    getClass().getResource("/res/logos/theIMPERIALOne(TEXTO)_logo (pequeño).png")
+        	).getImage();
+        if (logo == null) return;
         setFocusable(true);
     }
 
@@ -24,7 +26,7 @@ public class LoadingScreen extends JPanel {
 
         Graphics2D g2 = (Graphics2D) g.create();
 
-        g2.setColor(Color.BLACK);
+        g2.setColor(new Color(0,0,0,255));
         g2.fillRect(0, 0, getWidth(), getHeight());
 
         g2.setComposite(
@@ -51,7 +53,6 @@ public class LoadingScreen extends JPanel {
 
             if (alpha >= 1f) {
                 alpha = 1f;
-                repaint();
                 timer.stop();
 
                 // Espera antes de cambiar
@@ -65,8 +66,6 @@ public class LoadingScreen extends JPanel {
                 espera.start();
                 return;
             }
-
-            repaint();
         });
 
         timer.start();
