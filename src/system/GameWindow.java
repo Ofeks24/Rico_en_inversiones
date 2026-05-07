@@ -50,7 +50,7 @@ public class GameWindow extends JPanel implements Screen {
         
         JPanel icono1 = crearIcono("Robbin Hub", Utils.escalarIcono("res/logos/RobbinHub(icono).png", 75));
         desktopIconsLayer.add(icono1);
-        JPanel icono2 = crearIcono("Documentos", Utils.escalarIcono("res/logos/Doors(Closed).png", 50));
+        JPanel icono2 = crearIcono("Telégrafo de Montecristo", Utils.escalarIcono("res/logos/TelegrafoDeMontecristo(icono)(1).png", 75));
         desktopIconsLayer.add(icono2);
         JPanel icono3 = crearIcono("Internet", Utils.escalarIcono("res/logos/Doors(Closed).png", 50));
         desktopIconsLayer.add(icono3);
@@ -148,9 +148,15 @@ public class GameWindow extends JPanel implements Screen {
         JLabel icono = new JLabel(imagen);
         icono.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JLabel nombre = new JLabel(texto);
-        nombre.setForeground(Color.WHITE);
-        nombre.setAlignmentX(Component.CENTER_ALIGNMENT);
+        JLabel nombre = new JLabel(
+        	    "<html><div style='text-align:center; width:70px;'>"
+        	    + texto +
+        	    "</div></html>"
+        	);
+
+    	nombre.setForeground(Color.WHITE);
+    	nombre.setAlignmentX(Component.CENTER_ALIGNMENT);
+    	nombre.setHorizontalAlignment(SwingConstants.CENTER);
         
         p.add(icono);
         p.add(nombre);
@@ -195,6 +201,9 @@ public class GameWindow extends JPanel implements Screen {
                 if (e.getClickCount() == 2 && texto.equals("Robbin Hub")) {
                     abrirInvestmentWindow();
                 }
+                if (e.getClickCount() == 2 && texto.equals("Telégrafo de Montecristo")) {
+                	abrirNewsWindow();
+                }
             }
         });
 
@@ -209,6 +218,24 @@ public class GameWindow extends JPanel implements Screen {
             () -> {
                 OpenAppWindow win = new OpenAppWindow("Robbin Hub",
                 	new InvestmentPanel(),
+                    800,
+                    500,
+                    icono
+                );
+                win.setLocation(200, 100);
+                return win;
+            }
+        );
+    }
+    
+    private void abrirNewsWindow() {
+    	ImageIcon icono = Utils.escalarIcono("res/logos/TelegrafoDeMontecristo(icono)(1).png", 25);
+        windowManager.openWindow(
+            "telegrafo_de_montecristo",
+            icono,
+            () -> {
+                OpenAppWindow win = new OpenAppWindow("Telégrafo de Montecristo",
+                	new JPanel(),
                     800,
                     500,
                     icono

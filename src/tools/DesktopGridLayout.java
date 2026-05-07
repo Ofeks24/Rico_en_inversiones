@@ -5,10 +5,10 @@ import java.awt.*;
 public class DesktopGridLayout implements LayoutManager {
 
     private int cellWidth = 90;
-    private int cellHeight = 100;
+    private int cellHeight = 110;
     private int hGap = 20;
     private int vGap = 20;
-    private int margin = 20;
+    private int margin = 10;
 
     @Override
     public void addLayoutComponent(String name, Component comp) {}
