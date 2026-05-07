@@ -22,8 +22,6 @@ public class Clock {
 		day=1;
 		month=6;
 		year=1996;
-		
-		initClock();
 	}
 	
 	public Clock() {
@@ -32,16 +30,18 @@ public class Clock {
 		day=1;
 		month=6;
 		year=1996;
-		
-		initClock();
 	}
 	
 	
-	private void initClock() {
-		clock= new Timer(5000,e->{
+	public void initClock(int time) {
+		clock= new Timer(time,e->{
 			sumarTiempo();
 		});
 		clock.start();
+	}
+	
+	public void detener() {
+		clock.stop();
 	}
 
 
@@ -90,6 +90,11 @@ public class Clock {
 		listeners.forEach(Runnable::run);
 	}
 	
+	public void setHour(int hour) {
+		if(hour<24&&hour>=0) {
+			this.hour=hour;
+		}
+	}
 	
 
 	public void addListener(Runnable r) {

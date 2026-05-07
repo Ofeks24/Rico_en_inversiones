@@ -5,7 +5,7 @@ import java.awt.*;
 public class DesktopGridLayout implements LayoutManager {
 
     private int cellWidth = 90;
-    private int cellHeight = 90;
+    private int cellHeight = 100;
     private int hGap = 20;
     private int vGap = 20;
     private int margin = 20;

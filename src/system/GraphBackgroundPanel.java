@@ -1,4 +1,4 @@
-package windows;
+package system;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,7 +11,6 @@ public class GraphBackgroundPanel extends JPanel {
     private final Random r = new Random();
 
     private double scaleX = 18;
-    private double scaleY = 2.2;
     private double offsetX = 0;
 
     private Timer graphTimer;
@@ -31,8 +30,12 @@ public class GraphBackgroundPanel extends JPanel {
             double drift = (r.nextDouble() * 30 - 15);
             double close = open + drift;
 
-            double high = Math.max(open, close) + r.nextDouble() * 20;
-            double low = Math.min(open, close) - r.nextDouble() * 20;
+            double bodySize = Math.abs(close - open);
+
+            double wickFactor = 0.5; // ajusta esto (0.2 = muy corta, 1 = normal)
+
+            double high = Math.max(open, close) + r.nextDouble() * bodySize * wickFactor;
+            double low  = Math.min(open, close) - r.nextDouble() * bodySize * wickFactor;
 
             candles.add(new Candle(open, high, low, close));
             price = close;
@@ -40,13 +43,13 @@ public class GraphBackgroundPanel extends JPanel {
     }
 
     private void initTimer() {
-        graphTimer = new Timer(500, e -> {
+        graphTimer = new Timer(5000, e -> {
             updateGraph();
         });
         graphTimer.start();
     }
 
-    private void initMouseControls() {
+    /*private void initMouseControls() {
         addMouseWheelListener(e -> {
             double factor = (e.getPreciseWheelRotation() < 0) ? 1.1 : 0.9;
 
@@ -57,7 +60,7 @@ public class GraphBackgroundPanel extends JPanel {
 
             
         });
-    }
+    }*/
 
     private void updateGraph() {
         double lastClose = candles.get(candles.size() - 1).close;
@@ -66,12 +69,16 @@ public class GraphBackgroundPanel extends JPanel {
         double drift = (r.nextDouble() * 30 - 15);
         double close = open + drift;
 
-        double high = Math.max(open, close) + r.nextDouble() * 15;
-        double low = Math.min(open, close) - r.nextDouble() * 15;
+        double bodySize = Math.abs(close - open);
+
+        double wickFactor = 0.5; // ajusta esto (0.2 = muy corta, 1 = normal)
+
+        double high = Math.max(open, close) + r.nextDouble() * bodySize * wickFactor;
+        double low  = Math.min(open, close) - r.nextDouble() * bodySize * wickFactor;
 
         candles.add(new Candle(open, high, low, close));
 
-        if (candles.size() > 120) {
+        if (candles.size() > 50) {
             candles.remove(0);
         }
     }
@@ -82,10 +89,26 @@ public class GraphBackgroundPanel extends JPanel {
 
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2.setStroke(new BasicStroke(2f)); // mechas más visibles
 
         int w = getWidth();
         int h = getHeight();
-        double centerY = h / 2.0;
+
+        double min = Double.MAX_VALUE;
+        double max = Double.MIN_VALUE;
+
+        for (Candle c : candles) {
+            min = Math.min(min, c.low);
+            max = Math.max(max, c.high);
+        }
+
+        double range = max - min;
+        double padding = range * 0.1;
+
+        min -= padding;
+        max += padding;
+
+        double scaleYDynamic = h / (max - min);
 
         // Fondo
         g2.setColor(new Color(15, 15, 15));
@@ -105,10 +128,10 @@ public class GraphBackgroundPanel extends JPanel {
 
             if (x < -100 || x > w + 100) continue;
 
-            int openY  = (int)(centerY - (c.open  - 400) * scaleY);
-            int closeY = (int)(centerY - (c.close - 400) * scaleY);
-            int highY  = (int)(centerY - (c.high  - 400) * scaleY);
-            int lowY   = (int)(centerY - (c.low   - 400) * scaleY);
+            int openY  = (int)(h - (c.open  - min) * scaleYDynamic);
+            int closeY = (int)(h - (c.close - min) * scaleYDynamic);
+            int highY  = (int)(h - (c.high  - min) * scaleYDynamic);
+            int lowY   = (int)(h - (c.low   - min) * scaleYDynamic);
 
             boolean bullish = c.close >= c.open;
 

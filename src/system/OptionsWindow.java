@@ -1,4 +1,4 @@
-package windows;
+package system;
 
 import tools.RoundedPanel;
 import tools.Screen;
@@ -23,7 +23,7 @@ public class OptionsWindow extends JPanel implements Screen {
 
         JButton volver = new JButton("Volver");
         volver.addActionListener(e -> {
-            if (onBack != null) onBack.run();
+            if (this.onBack != null) this.onBack.run();
         });
 
         overlay.add(volver, BorderLayout.SOUTH);

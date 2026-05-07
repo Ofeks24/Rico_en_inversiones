@@ -1,4 +1,4 @@
-package windows;
+package system;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -13,6 +13,7 @@ public class MainFrame extends JFrame {
     private ScreenManager screenManager;
     private GraphBackgroundPanel background;
     private JLayeredPane layeredPane;
+    private Clock time = new Clock();
 
     public MainFrame() {
 
@@ -25,7 +26,8 @@ public class MainFrame extends JFrame {
         initLayout();
         initScreens();
         initAnimation();
-
+        
+        setTitle("Rico en inversiones");
         setSize(1280, 720); // o pack()
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -52,7 +54,7 @@ public class MainFrame extends JFrame {
     private void initScreens() {
 
         GameWindow game = new GameWindow(() ->
-                screenManager.showScreen("MENU"),new Clock()
+                screenManager.showScreen("MENU"),time
         );
 
         MainMenu menu = new MainMenu(

@@ -1,6 +1,9 @@
-package windows;
+package main;
 
 import javax.swing.SwingUtilities;
+
+import system.MainFrame;
+
 import javax.swing.JFrame;
 
 public class MainProcess {
