@@ -43,7 +43,7 @@ public class GraphBackgroundPanel extends JPanel {
     }
 
     private void initTimer() {
-        graphTimer = new Timer(5000, e -> {
+        graphTimer = new Timer(500, e -> {
             updateGraph();
         });
         graphTimer.start();
