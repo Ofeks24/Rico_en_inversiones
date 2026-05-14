@@ -235,7 +235,7 @@ public class GameWindow extends JPanel implements Screen {
             icono,
             () -> {
                 OpenAppWindow win = new OpenAppWindow("Telégrafo de Montecristo",
-                	new JPanel(),
+                	new NewsWindow(10000),
                     800,
                     500,
                     icono
