@@ -28,23 +28,24 @@ public class NewsWindow extends JPanel implements Screen {
     private final Color colorTitulo = new Color(40, 25, 15);
     JPanel contenido = new JPanel();
 
-    String prompt[] = {
+    String prompt =
     		"""
-    		Genera una noticia ficticia de economía.
+    		Genera una noticia ficticia para un periódico antiguo.
 
-    		Contexto del mundo:
-    		- Inflación alta
-    		- Crisis naval
-    		- Guerra comercial
+    		Contexto:
+    		- Ciudad: Montecristo
+    		- Año: 1895
+    		- Ambiente económico tenso
 
-    		Tono:
-    		- Periodístico
-    		- Serio
-    		- Año 1890
+    		Tema:
+    		Crisis en la industria naval.
 
-    		Longitud:
-    		- 2 párrafos
-    		""",};
+    		Formato:
+    		- Título llamativo
+    		- Dos párrafos
+    		- Tono serio y elegante
+    		- Español formal
+    		""";
 	
 	
 	public NewsWindow(int timeToUpdate) {
@@ -95,6 +96,23 @@ public class NewsWindow extends JPanel implements Screen {
 
         contenido.add(sep);
         contenido.add(Box.createVerticalStrut(25));
+        /*Timer timer = new Timer(1000, e->{
+    		System.out.println("Sigo pensando");
+    	});
+    	timer.start();
+        new Thread(() -> {
+
+            String noticia = LocalAI.generarNoticia(prompt);
+
+            SwingUtilities.invokeLater(() -> {
+
+            	System.out.println(noticia);
+
+            });
+            timer.stop();
+        }).start();*/
+
+        
 
         // =================================================
         // SECCIONES DEL PERIÓDICO

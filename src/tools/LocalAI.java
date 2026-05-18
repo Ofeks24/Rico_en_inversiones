@@ -3,19 +3,22 @@ package tools;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
+import javax.swing.Timer;
+
 public class LocalAI {
 
     public static String generarNoticia(String prompt) {
 
         try {
-
+        	
             ProcessBuilder pb = new ProcessBuilder(
-                    "ai/client/llama-cli.exe",
-                    "-m", "ai/models/tinyllama.gguf",
+                    "ai/llama-cli.exe",
+                    "-m", "ai/models/qwen.gguf",
                     "-p", prompt,
                     "-n", "200",
                     "-t", "8",
-                    "--temp", "0.95"
+                    "--temp", "0.95",
+                    "--no-display-prompt"
             );
 
             pb.redirectErrorStream(true);
@@ -35,13 +38,24 @@ public class LocalAI {
             }
 
             process.waitFor();
-
-            return output.toString();
+            
+            return limpiarSalida(output.toString());
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         return "No se pudo generar la noticia.";
+    }
+
+    // ============================================
+    // LIMPIAR TEXTO GENERADO
+    // ============================================
+
+    private static String limpiarSalida(String texto) {
+
+        texto = texto.replaceAll("(?s)^.*?\\n\\n", "");
+
+        return texto.trim();
     }
 }
