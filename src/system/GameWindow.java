@@ -3,6 +3,7 @@ package system;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
+import system.Investment.InvestmentPanel;
 import tools.Clock;
 import tools.DesktopGridLayout;
 import tools.OpenAppWindow;
