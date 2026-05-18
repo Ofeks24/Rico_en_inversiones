@@ -3,7 +3,7 @@ package system;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
-import system.Investment.InvestmentPanel;
+import system.Investment.InvestmentWindow;
 import tools.Clock;
 import tools.DesktopGridLayout;
 import tools.OpenAppWindow;
@@ -218,7 +218,7 @@ public class GameWindow extends JPanel implements Screen {
             icono,
             () -> {
                 OpenAppWindow win = new OpenAppWindow("Robbin Hub",
-                	new InvestmentPanel(),
+                	InvestmentWindow.create(),
                     800,
                     500,
                     icono

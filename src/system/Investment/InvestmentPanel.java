@@ -5,21 +5,16 @@ import javax.swing.*;
 import tools.CompanyData;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.List;
+
 import javax.swing.plaf.basic.BasicSliderUI;
 import java.awt.Rectangle;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
+
 
 
 public class InvestmentPanel extends JPanel {
 
-    // =====================================================
-    // EMPRESAS
-    // =====================================================
 
-	private final List<CompanyData> companies = new ArrayList<>();
+
 
     // =====================================================
     // COMPONENTES DINÁMICOS
@@ -46,7 +41,7 @@ public class InvestmentPanel extends JPanel {
 
     public InvestmentPanel() {
 
-        initCompanies();
+
 
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
@@ -56,47 +51,10 @@ public class InvestmentPanel extends JPanel {
         add(crearContenido(), BorderLayout.CENTER);
 
         // empresa inicial
-        if (!companies.isEmpty()) {
-            updateCompany(companies.get(0));
-        }
+
     }
 
-    // =====================================================
-    // EMPRESAS DEMO
-    // =====================================================
 
-    private void initCompanies() {
-
-    	companies.add(
-    		    new CompanyData(
-                        "Apple Inc.",
-                        "Tecnología y electrónica",
-                        1200000,
-                        0,
-                        12
-                )
-        );
-
-    	companies.add(
-    		    new CompanyData(
-                        "Tesla Motors",
-                        "Vehículos eléctricos",
-                        950000,
-                        0,
-                        0.03
-                )
-        );
-
-    	companies.add(
-    		    new CompanyData(
-                        "Amazon",
-                        "Comercio online y cloud",
-                        2000000,
-                        0,
-                        50
-                )
-        );
-    }
 
     // =====================================================
     // BARRA SUPERIOR
@@ -111,19 +69,8 @@ public class InvestmentPanel extends JPanel {
         // DROPDOWN
         // =========================
 
-        companyDropdown = new JComboBox<>(
-        	    companies.toArray(new CompanyData[0])
-        	);
 
-        companyDropdown.addActionListener(e -> {
-        	
-        CompanyData selected =
-			    (CompanyData) companyDropdown.getSelectedItem();
-
-			updateCompany(selected);
-        		
-        });
-
+        companyDropdown = new JComboBox<>();
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
         left.setOpaque(false);
         left.add(companyDropdown);
@@ -210,23 +157,11 @@ public class InvestmentPanel extends JPanel {
 
         accionesSlider.setValue(0);
 
-        accionesSlider.addChangeListener(e -> {
-            actualizarInfoSlider();
-        });
+
 
         accionesField = new JTextField("0");
         
-        accionesField.addActionListener(e -> {
-            actualizarSliderDesdeTexto();
-        });
-        
-        accionesField.addFocusListener(new FocusAdapter() {
 
-            @Override
-            public void focusLost(FocusEvent e) {
-                actualizarSliderDesdeTexto();
-            }
-        });
 
         accionesField.setMaximumSize(
             new Dimension(120, 25)
@@ -316,66 +251,8 @@ public class InvestmentPanel extends JPanel {
 
         return root;
     }
-
-    // =====================================================
-    // ACTUALIZAR EMPRESA
-    // =====================================================
-
-    private void updateCompany(CompanyData c) {
-
-        if (c == null) return;
-
-        nombreLabel.setText(
-                "Nombre: " + c.getNombre()
-        );
-
-        actividadLabel.setText(
-                "Actividad principal: " + c.getActividad()
-        );
-
-        accionesMercadoLabel.setText(
-                "Acciones en el mercado: " + c.getAccionesMercado()
-        );
-
-        accionesPropiedadLabel.setText(
-                "Acciones en propiedad: " + c.getAccionesPropiedad()
-        );
-
-        lblGrafica.setText(
-                "(Gráfica de " + c.getNombre() + ")"
-        );
-        
-        valorAccionLabel.setText(
-        	    "Valor por acción: $" + c.getValorAccion()
-        	);
-        
-        accionesSlider.setMaximum(
-        	    c.getAccionesMercado()
-        	);
-
-        	accionesSlider.setValue(0);
-    }
     
-    private void actualizarInfoSlider() {
-
-        CompanyData c =
-                (CompanyData) companyDropdown.getSelectedItem();
-
-        if (c == null) return;
-
-        int acciones = accionesSlider.getValue();
-
-        double coste =
-                acciones * c.getValorAccion();
-
-        accionesField.setText(
-        	    String.valueOf(acciones)
-        	);
-
-        costeTotalLabel.setText(
-                "Coste total: $" + coste
-        );
-    }
+    
 
     // =====================================================
     // HELPERS
@@ -405,34 +282,75 @@ public class InvestmentPanel extends JPanel {
         return b;
     }
     
-    private void actualizarSliderDesdeTexto() {
+    public void setCompanies(
+            java.util.List<CompanyData> companies
+    ) {
 
-        try {
+        companyDropdown.removeAllItems();
 
-            int valor =
-                    Integer.parseInt(
-                            accionesField.getText()
-                    );
-
-            valor = Math.max(
-                    accionesSlider.getMinimum(),
-                    valor
-            );
-
-            valor = Math.min(
-                    accionesSlider.getMaximum(),
-                    valor
-            );
-
-            accionesSlider.setValue(valor);
-
-        } catch (NumberFormatException ex) {
-
-            accionesField.setText(
-                    String.valueOf(
-                            accionesSlider.getValue()
-                    )
-            );
+        for (CompanyData c : companies) {
+            companyDropdown.addItem(c);
         }
     }
+    
+    public void setCompanyInfo(CompanyData c) {
+
+        if (c == null) return;
+
+        nombreLabel.setText(
+                "Nombre: " + c.getNombre()
+        );
+
+        actividadLabel.setText(
+                "Actividad principal: " +
+                c.getActividad()
+        );
+
+        accionesMercadoLabel.setText(
+                "Acciones en el mercado: " +
+                c.getAccionesMercado()
+        );
+
+        accionesPropiedadLabel.setText(
+                "Acciones en propiedad: " +
+                c.getAccionesPropiedad()
+        );
+
+        valorAccionLabel.setText(
+                "Valor por acción: $" +
+                c.getValorAccion()
+        );
+
+        lblGrafica.setText(
+                "(Gráfica de " + c.getNombre() + ")"
+        );
+    }
+    
+    public void setSelectedActions(int actions) {
+
+        accionesField.setText(
+                String.valueOf(actions)
+        );
+    }
+    
+    public void setCost(double cost) {
+
+        costeTotalLabel.setText(
+                "Coste total: $" + cost
+        );
+    }
+    
+    public JComboBox<CompanyData> getCompanyDropdown() {
+        return companyDropdown;
+    }
+    
+    public JSlider getSlider() {
+        return accionesSlider;
+    }
+    
+    public JTextField getAccionesField() {
+        return accionesField;
+    }
+    
+    
 }

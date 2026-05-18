@@ -1,5 +1,7 @@
 package system.Investment;
 
+import tools.CompanyData;
+
 public class InvestmentController {
 
     private final InvestmentModel model;
