@@ -31,6 +31,16 @@ public class InvestmentWindow {
                         0.03
                 )
         );
+        
+        companies.add(
+                new CompanyData(
+                        "Ultra mega hiper empresa super guay de patas",
+                        "Vehículos eléctricos",
+                        950000,
+                        0,
+                        0.03
+                )
+        );
 
         InvestmentModel model =
                 new InvestmentModel(companies);
