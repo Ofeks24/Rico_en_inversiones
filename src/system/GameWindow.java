@@ -202,34 +202,35 @@ public class GameWindow extends JPanel implements Screen {
             }
             @Override
             public void mouseClicked(MouseEvent e) {
+            	String ruta = "res/logos/";
                 if (e.getClickCount() == 2) {
                 	if(texto.equals("Robbin Hub")) {
                     	abrirWindow(texto,
-                    			Utils.escalarIcono("res/logos/RobbinHub(icono).png", 25),
+                    			Utils.escalarIcono(ruta+"RobbinHub(icono).png", 25),
                     			InvestmentWindow.create()
                     			);
                     }
                 	if (texto.equals("Telégrafo de Montecristo")) {
                     	abrirWindow(texto,
-                    			Utils.escalarIcono("res/logos/TelegrafoDeMontecristo(icono)(1).png", 25),
+                    			Utils.escalarIcono(ruta+"TelegrafoDeMontecristo(icono)(1).png", 25),
                     			new NewsWindow(10000)
                     			);
                     }
                     if (texto.equals("Stats.U")) {
                     	abrirWindow(texto,
-                    			Utils.escalarIcono("res/logos/Doors(Closed).png", 25),
+                    			Utils.escalarIcono(ruta+"Doors(Closed).png", 25),
                     			new JPanel()
                     			);
                     }
                     if (texto.equals("Tienda")) {
                     	abrirWindow(texto,
-                    			Utils.escalarIcono("res/logos/Doors(Closed).png", 25),
+                    			Utils.escalarIcono(ruta+"Doors(Closed).png", 25),
                     			new JPanel()
                     			);
                     }
                     if (texto.equals("BreakRoom")) {
                     	abrirWindow(texto,
-                    			Utils.escalarIcono("res/logos/Doors(Closed).png", 25),
+                    			Utils.escalarIcono(ruta+"Doors(Closed).png", 25),
                     			new JPanel()
                     			);
                     }
@@ -253,6 +254,24 @@ public class GameWindow extends JPanel implements Screen {
                 	window,
                     800,
                     500,
+                    icono
+                );
+                win.setLocation(200, 100);
+                return win;
+            }
+        );
+    }
+    
+    @SuppressWarnings("unused")
+	private void abrirWindow(String nombre, ImageIcon icono, JPanel window, int x, int y) {
+        windowManager.openWindow(
+            Utils.convertirEnId(nombre),
+            icono,
+            () -> {
+                OpenAppWindow win = new OpenAppWindow(nombre,
+                	window,
+                    x,
+                    y,
                     icono
                 );
                 win.setLocation(200, 100);

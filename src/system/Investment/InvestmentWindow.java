@@ -1,6 +1,7 @@
 package system.Investment;
 
 import tools.CompanyData;
+import tools.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +42,8 @@ public class InvestmentWindow {
                         0.03
                 )
         );
-
+        
+        Utils.conexion();
         InvestmentModel model =
                 new InvestmentModel(companies);
 

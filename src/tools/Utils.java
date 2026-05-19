@@ -1,6 +1,11 @@
 package tools;
 
 import java.awt.Image;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.Normalizer;
 
 import javax.swing.ImageIcon;
@@ -80,4 +85,29 @@ public class Utils {
 
         return normalizado;
     }
+	
+	
+	public static void conexion() {
+		String ruta= "res/db/app.db";
+		String url = "jdbc:sqlite:"+ruta;
+
+	    // Conexión y consulta usando try-with-resources para cerrar recursos automáticamente
+	    try (Connection conn = DriverManager.getConnection(url)) {
+	        if (conn != null) {
+	            System.out.println("Conexión exitosa a la base de datos.");
+	            
+	            String sql = "SELECT * FROM Empresas"; // Cambia por tu consulta
+	            try (Statement stmt = conn.createStatement();
+	                 ResultSet rs = stmt.executeQuery(sql)) {
+	                
+	                while (rs.next()) {
+	                    // Extrae datos por nombre de columna o índice
+	                    System.out.println("Columna 1: " + rs.getString(1));
+	                }
+	            }
+	        }
+	    } catch (SQLException e) {
+	        System.out.println("Error de conexión: " + e.getMessage());
+	    }
+	}
 }
