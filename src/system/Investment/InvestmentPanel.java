@@ -125,7 +125,7 @@ public class InvestmentPanel extends JPanel {
         
         accionesSlider.setBorder(
         	    BorderFactory.createEmptyBorder(
-        	        5, 5, 5, 5
+        	        15, 5, 15, 5
         	    )
         	);
         
@@ -135,8 +135,9 @@ public class InvestmentPanel extends JPanel {
             public void paintThumb(Graphics g) {
 
                 Graphics2D g2 = (Graphics2D) g.create();
-
+                
                 Rectangle knobBounds = thumbRect;
+                
 
                 g2.setColor(Color.BLACK);
 

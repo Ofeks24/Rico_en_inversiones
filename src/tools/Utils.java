@@ -1,6 +1,7 @@
 package tools;
 
 import java.awt.Image;
+import java.text.Normalizer;
 
 import javax.swing.ImageIcon;
 
@@ -58,4 +59,25 @@ public class Utils {
 	public static boolean esBisiesto(int anio) {
 	    return (anio % 4 == 0 && anio % 100 != 0) || (anio % 400 == 0);
 	}
+	
+	public static String convertirEnId(String texto) {
+        if (texto == null || texto.isBlank()) {
+            return "";
+        }
+
+        // Eliminar tildes
+        String normalizado = Normalizer.normalize(texto, Normalizer.Form.NFD)
+                .replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+
+        // Minúsculas
+        normalizado = normalizado.toLowerCase();
+
+        // Reemplazar espacios por _
+        normalizado = normalizado.replaceAll("\\s+", "_");
+
+        // Eliminar caracteres no válidos
+        normalizado = normalizado.replaceAll("[^a-z0-9_]", "");
+
+        return normalizado;
+    }
 }

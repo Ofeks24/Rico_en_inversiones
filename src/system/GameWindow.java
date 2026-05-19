@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
 import system.Investment.InvestmentWindow;
+import system.News.NewsWindow;
 import tools.Clock;
 import tools.DesktopGridLayout;
 import tools.OpenAppWindow;
@@ -53,10 +54,12 @@ public class GameWindow extends JPanel implements Screen {
         desktopIconsLayer.add(icono1);
         JPanel icono2 = crearIcono("Telégrafo de Montecristo", Utils.escalarIcono("res/logos/TelegrafoDeMontecristo(icono)(1).png", 75));
         desktopIconsLayer.add(icono2);
-        JPanel icono3 = crearIcono("Internet", Utils.escalarIcono("res/logos/Doors(Closed).png", 50));
+        JPanel icono3 = crearIcono("Stats.U", Utils.escalarIcono("res/logos/Doors(Closed).png", 50));
         desktopIconsLayer.add(icono3);
-        JPanel icono4 = crearIcono("Papelera", Utils.escalarIcono("res/logos/Doors(Closed).png", 50));
+        JPanel icono4 = crearIcono("Tienda", Utils.escalarIcono("res/logos/Doors(Closed).png", 50));
         desktopIconsLayer.add(icono4);
+        JPanel icono5 = crearIcono("BreakRoom", Utils.escalarIcono("res/logos/Doors(Closed).png", 50));
+        desktopIconsLayer.add(icono5);
         
         desktopContainer.add(desktopIconsLayer, JLayeredPane.DEFAULT_LAYER);
         desktopContainer.add(appsLayer, JLayeredPane.PALETTE_LAYER);
@@ -199,44 +202,55 @@ public class GameWindow extends JPanel implements Screen {
             }
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2 && texto.equals("Robbin Hub")) {
-                    abrirInvestmentWindow();
+                if (e.getClickCount() == 2) {
+                	if(texto.equals("Robbin Hub")) {
+                    	abrirWindow(texto,
+                    			Utils.escalarIcono("res/logos/RobbinHub(icono).png", 25),
+                    			InvestmentWindow.create()
+                    			);
+                    }
+                	if (texto.equals("Telégrafo de Montecristo")) {
+                    	abrirWindow(texto,
+                    			Utils.escalarIcono("res/logos/TelegrafoDeMontecristo(icono)(1).png", 25),
+                    			new NewsWindow(10000)
+                    			);
+                    }
+                    if (texto.equals("Stats.U")) {
+                    	abrirWindow(texto,
+                    			Utils.escalarIcono("res/logos/Doors(Closed).png", 25),
+                    			new JPanel()
+                    			);
+                    }
+                    if (texto.equals("Tienda")) {
+                    	abrirWindow(texto,
+                    			Utils.escalarIcono("res/logos/Doors(Closed).png", 25),
+                    			new JPanel()
+                    			);
+                    }
+                    if (texto.equals("BreakRoom")) {
+                    	abrirWindow(texto,
+                    			Utils.escalarIcono("res/logos/Doors(Closed).png", 25),
+                    			new JPanel()
+                    			);
+                    }
+                	
                 }
-                if (e.getClickCount() == 2 && texto.equals("Telégrafo de Montecristo")) {
-                	abrirNewsWindow();
-                }
+                
             }
         });
 
         return p;
     }
     
-    private void abrirInvestmentWindow() {
-    	ImageIcon icono = Utils.escalarIcono("res/logos/RobbinHub(icono).png", 25);
-        windowManager.openWindow(
-            "robbin_hub",
-            icono,
-            () -> {
-                OpenAppWindow win = new OpenAppWindow("Robbin Hub",
-                	InvestmentWindow.create(),
-                    800,
-                    500,
-                    icono
-                );
-                win.setLocation(200, 100);
-                return win;
-            }
-        );
-    }
     
-    private void abrirNewsWindow() {
-    	ImageIcon icono = Utils.escalarIcono("res/logos/TelegrafoDeMontecristo(icono)(1).png", 25);
+    
+    private void abrirWindow(String nombre, ImageIcon icono, JPanel window) {
         windowManager.openWindow(
-            "telegrafo_de_montecristo",
+            Utils.convertirEnId(nombre),
             icono,
             () -> {
-                OpenAppWindow win = new OpenAppWindow("Telégrafo de Montecristo",
-                	new NewsWindow(10000),
+                OpenAppWindow win = new OpenAppWindow(nombre,
+                	window,
                     800,
                     500,
                     icono
