@@ -1,4 +1,4 @@
-package main.java.system.Investment;
+package system.Investment;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -24,7 +24,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.plaf.basic.BasicSliderUI;
 
-import main.java.tools.CompanyData;
+import tools.CompanyData;
 
 
 

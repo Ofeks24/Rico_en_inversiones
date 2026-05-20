@@ -1,4 +1,4 @@
-package main.java.system;
+package system;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -7,8 +7,8 @@ import java.awt.GridBagLayout;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
-import main.java.tools.RoundedPanel;
-import main.java.tools.Screen;
+import tools.RoundedPanel;
+import tools.Screen;
 
 public class OptionsWindow extends JPanel implements Screen {
 

@@ -1,4 +1,4 @@
-package main.java.system;
+package system;
 
 import java.awt.Dimension;
 import java.awt.Toolkit;
@@ -8,8 +8,8 @@ import javax.swing.JLayeredPane;
 import javax.swing.JPanel;
 import javax.swing.Timer;
 
-import main.java.tools.Clock;
-import main.java.tools.ScreenManager;
+import tools.Clock;
+import tools.ScreenManager;
 
 public class MainFrame extends JFrame {
 

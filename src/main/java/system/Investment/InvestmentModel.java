@@ -1,8 +1,8 @@
-package main.java.system.Investment;
+package system.Investment;
 
 import java.util.List;
 
-import main.java.tools.CompanyData;
+import tools.CompanyData;
 
 public class InvestmentModel {
 

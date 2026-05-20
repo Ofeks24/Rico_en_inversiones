@@ -1,4 +1,4 @@
-package main.java.system;
+package system;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -23,15 +23,15 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-import main.java.system.Investment.InvestmentWindow;
-import main.java.system.News.NewsWindow;
-import main.java.tools.Clock;
-import main.java.tools.DesktopGridLayout;
-import main.java.tools.OpenAppWindow;
-import main.java.tools.Screen;
-import main.java.tools.TaskBarManager;
-import main.java.tools.Utils;
-import main.java.tools.WindowManager;
+import system.Investment.InvestmentWindow;
+import system.News.NewsWindow;
+import tools.Clock;
+import tools.DesktopGridLayout;
+import tools.OpenAppWindow;
+import tools.Screen;
+import tools.TaskBarManager;
+import tools.Utils;
+import tools.WindowManager;
 
 public class GameWindow extends JPanel implements Screen {
 

@@ -1,10 +1,10 @@
-package main.java.system.Investment;
+package system.Investment;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import main.java.tools.CompanyData;
-import main.java.tools.Utils;
+import tools.CompanyData;
+import tools.Utils;
 
 public class InvestmentWindow {
 

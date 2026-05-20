@@ -1,6 +1,6 @@
-package main.java.system.Investment;
+package system.Investment;
 
-import main.java.tools.CompanyData;
+import tools.CompanyData;
 
 public class InvestmentController {
 

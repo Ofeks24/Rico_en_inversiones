@@ -1,4 +1,4 @@
-package main.java.system.News;
+package system.News;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -15,7 +15,7 @@ import javax.swing.JTextArea;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 
-import main.java.tools.Screen;
+import tools.Screen;
 
 public class NewsWindow extends JPanel implements Screen {
 	

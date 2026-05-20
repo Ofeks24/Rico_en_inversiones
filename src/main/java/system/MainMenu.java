@@ -1,4 +1,4 @@
-package main.java.system;
+package system;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -18,9 +18,9 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import main.java.tools.BotonAjustable;
-import main.java.tools.Screen;
-import main.java.tools.Utils;
+import tools.BotonAjustable;
+import tools.Screen;
+import tools.Utils;
 
 public class MainMenu extends JPanel implements Screen {
 

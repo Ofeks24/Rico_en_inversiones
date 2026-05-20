@@ -1,9 +1,9 @@
-package main.java.main;
+package main;
 
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import main.java.system.MainFrame;
+import system.MainFrame;
 
 public class MainProcess {
 

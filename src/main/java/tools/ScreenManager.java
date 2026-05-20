@@ -1,4 +1,4 @@
-package main.java.tools;
+package tools;
 import javax.swing.*;
 
 import java.awt.*;
