@@ -24,6 +24,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.plaf.basic.BasicSliderUI;
 
+import system.Stats.StatsController;
 import tools.CompanyData;
 
 
@@ -249,6 +250,16 @@ public class InvestmentPanel extends JPanel {
         derecha.add(Box.createVerticalGlue());
 
         JButton comprar = crearBoton("Comprar");
+        comprar.addActionListener(e -> {
+        	StatsController.buyShares(
+        		    company.getId(),
+        		    company.getNombre(),
+        		    cantidad,
+        		    company.getValorAccion()
+        		);
+        });
+        
+        
         JButton vender = crearBoton("Vender");
 
         comprar.setMaximumSize(new Dimension(140, 30));

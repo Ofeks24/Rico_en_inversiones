@@ -353,9 +353,9 @@ public class GameWindow extends JPanel implements Screen {
             ));
 
             fecha.setText(String.format("%02d/%02d/%04d",
-                time.getDay(),
-                time.getMonth(),
-                time.getYear()
+                time.getDate().getDay(),
+                time.getDate().getMonth(),
+                time.getDate().getYear()
             ));
         };
 

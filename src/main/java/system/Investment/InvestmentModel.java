@@ -1,8 +1,10 @@
 package system.Investment;
 
-import java.util.List;
+import database.CompanyRepository;
 
 import tools.CompanyData;
+
+import java.util.List;
 
 public class InvestmentModel {
 
@@ -12,12 +14,18 @@ public class InvestmentModel {
 
     private int accionesSeleccionadas;
 
-    public InvestmentModel(List<CompanyData> companies) {
+    public InvestmentModel() {
 
-        this.companies = companies;
+        CompanyRepository repo =
+                new CompanyRepository();
+
+        companies =
+                repo.getAllCompanies();
 
         if (!companies.isEmpty()) {
-            selectedCompany = companies.get(0);
+
+            selectedCompany =
+                    companies.get(0);
         }
     }
 
@@ -48,9 +56,11 @@ public class InvestmentModel {
 
     public double getCosteTotal() {
 
-        if (selectedCompany == null) return 0;
+        if (selectedCompany == null)
+            return 0;
 
-        return accionesSeleccionadas *
-                selectedCompany.getValorAccion();
+        return accionesSeleccionadas
+                * selectedCompany
+                .getValorAccion();
     }
 }

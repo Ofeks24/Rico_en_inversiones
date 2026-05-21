@@ -87,32 +87,6 @@ public class Utils {
     }
 	
 	
-	public static void conexion() {
-		String url =
-			    "jdbc:sqlite:"
-			    + System.getProperty("user.dir")
-			    + "/data/app.db";
-
-	    // Conexión y consulta usando try-with-resources para cerrar recursos automáticamente
-	    try (Connection conn = DriverManager.getConnection(url)) {
-	        if (conn != null) {
-	            System.out.println("Conexión exitosa a la base de datos.");
-	            
-	            String sql = "SELECT * FROM Empresas"; // Cambia por tu consulta
-	            try (Statement stmt = conn.createStatement();
-	                 ResultSet rs = stmt.executeQuery(sql)) {
-	                
-	                while (rs.next()) {
-	                    // Extrae datos por nombre de columna o índice
-	                    System.out.println("Columna 1: " + rs.getString(1));
-	                }
-	            }
-	        }
-	    } catch (SQLException e) {
-	        System.out.println("Error de conexión: " + e.getMessage());
-	    }
-	}
-	
 	public static ImageIcon icon(
 	        String ruta
 	) {
