@@ -251,12 +251,7 @@ public class InvestmentPanel extends JPanel {
 
         JButton comprar = crearBoton("Comprar");
         comprar.addActionListener(e -> {
-        	StatsController.buyShares(
-        		    company.getId(),
-        		    company.getNombre(),
-        		    cantidad,
-        		    company.getValorAccion()
-        		);
+        	
         });
         
         
