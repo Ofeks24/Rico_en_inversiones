@@ -9,6 +9,7 @@ public class CompanyData {
     int accionesPropiedad;
     double valorAccion;
     String marca;
+    private Sector sector;
 
     public CompanyData(
     		int id,
@@ -17,7 +18,8 @@ public class CompanyData {
             int accionesMercado,
             int accionesPropiedad,
             double valorAccion,
-            String marca
+            String marca,
+            Sector sector
     ) {
     	this.id = id;
         this.nombre = nombre;
@@ -26,6 +28,11 @@ public class CompanyData {
         this.accionesPropiedad = accionesPropiedad;
         this.valorAccion = valorAccion;
         this.marca = marca;
+        this.sector = sector;
+    }
+    
+    public Sector getSector() { 
+    	return sector; 
     }
 
 	public String getMarca() {

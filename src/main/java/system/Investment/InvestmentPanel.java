@@ -404,9 +404,7 @@ public class InvestmentPanel extends JPanel {
 
         if (c == null) return;
 
-        nombreLabel.setText(
-                "Nombre: " + c.getNombre()
-        );
+        nombreLabel.setText(c.getNombre());
 
         actividadLabel.setText(
                 "<html><div style='text-align:left;'>Descripcion:<br>" +
