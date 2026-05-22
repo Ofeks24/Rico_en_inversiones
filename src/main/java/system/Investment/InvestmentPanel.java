@@ -30,7 +30,23 @@ import tools.CompanyData;
 
 
 public class InvestmentPanel extends JPanel {
+	
+	private static final Color BG = new Color(245, 247, 250);
+	private static final Color CARD = Color.WHITE;
+	private static final Color TEXT = new Color(30, 30, 30);
+	private static final Color ACCENT = new Color(52, 120, 246);
 
+	private static final java.awt.Font TITLE_FONT =
+	        new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 22);
+
+	private static final java.awt.Font SUBTITLE_FONT =
+	        new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16);
+
+	private static final java.awt.Font NORMAL_FONT =
+	        new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14);
+
+	private static final java.awt.Font BUTTON_FONT =
+	        new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14);
 
 
 
@@ -52,6 +68,8 @@ public class InvestmentPanel extends JPanel {
 
     JTextField accionesField;
     private JLabel costeTotalLabel;
+    
+    private JButton comprarButton;
 
     // =====================================================
     // CONSTRUCTOR
@@ -63,7 +81,7 @@ public class InvestmentPanel extends JPanel {
 
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
-        setBackground(Color.WHITE);
+        setBackground(BG);
 
         add(crearBarraSuperior(), BorderLayout.NORTH);
         add(crearContenido(), BorderLayout.CENTER);
@@ -89,6 +107,11 @@ public class InvestmentPanel extends JPanel {
 
 
         companyDropdown = new JComboBox<>();
+        companyDropdown.setFont(NORMAL_FONT);
+
+        companyDropdown.setPreferredSize(
+            new Dimension(250, 35)
+        );
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
         left.setOpaque(false);
         left.add(companyDropdown);
@@ -122,13 +145,21 @@ public class InvestmentPanel extends JPanel {
 
         JPanel grafica = new JPanel(new BorderLayout());
         grafica.setPreferredSize(new Dimension(500, 300));
-        grafica.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        grafica.setBackground(Color.WHITE);
+        grafica.setBackground(CARD);
+
+        grafica.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220,220,220)),
+                BorderFactory.createEmptyBorder(15,15,15,15)
+            )
+        );
+        
 
         lblGrafica = new JLabel(
                 "(Gráfica)",
                 SwingConstants.CENTER
         );
+        lblGrafica.setFont(TITLE_FONT);
 
         lblGrafica.setForeground(Color.BLACK);
 
@@ -136,8 +167,14 @@ public class InvestmentPanel extends JPanel {
 
         JPanel barra = new JPanel();
         barra.setLayout(new BoxLayout(barra, BoxLayout.Y_AXIS));
-        barra.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        barra.setBackground(Color.WHITE);
+        barra.setBackground(CARD);
+
+        barra.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220,220,220)),
+                BorderFactory.createEmptyBorder(15,15,15,15)
+            )
+        );
 
         accionesSlider = new JSlider();
         
@@ -157,7 +194,7 @@ public class InvestmentPanel extends JPanel {
                 Rectangle knobBounds = thumbRect;
                 
 
-                g2.setColor(Color.BLACK);
+                g2.setColor(ACCENT);
 
                 // barra vertical
                 g2.fillRect(
@@ -173,12 +210,26 @@ public class InvestmentPanel extends JPanel {
 
         accionesSlider.setMinimum(0);
         accionesSlider.setMaximum(100);
+        
+        accionesSlider.setBackground(CARD);
+        accionesSlider.setForeground(ACCENT);
+        accionesSlider.setPaintTicks(false);
+        accionesSlider.setPaintLabels(false);
 
         accionesSlider.setValue(0);
 
 
 
         accionesField = new JTextField("0");
+        
+        accionesField.setFont(SUBTITLE_FONT);
+
+        accionesField.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(200,200,200)),
+                BorderFactory.createEmptyBorder(8,10,8,10)
+            )
+        );
         
 
 
@@ -193,6 +244,10 @@ public class InvestmentPanel extends JPanel {
         costeTotalLabel = new JLabel(
             "Coste total: $0"
         );
+        
+        costeTotalLabel.setFont(SUBTITLE_FONT);
+        costeTotalLabel.setForeground(ACCENT);
+        
         accionesField.setColumns(10);
 
         //accionesSeleccionadasLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -226,6 +281,14 @@ public class InvestmentPanel extends JPanel {
         );
 
         derecha.setBackground(Color.WHITE);
+        derecha.setBackground(CARD);
+
+        derecha.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(220,220,220)),
+                BorderFactory.createEmptyBorder(20,20,20,20)
+            )
+        );
 
         nombreLabel = crearLabel("");
         actividadLabel = crearLabel("");
@@ -249,18 +312,16 @@ public class InvestmentPanel extends JPanel {
 
         derecha.add(Box.createVerticalGlue());
 
-        JButton comprar = crearBoton("Comprar");
-        comprar.addActionListener(e -> {
-        	
-        });
+        comprarButton = crearBoton("Comprar");
+        
         
         
         JButton vender = crearBoton("Vender");
 
-        comprar.setMaximumSize(new Dimension(140, 30));
+        comprarButton.setMaximumSize(new Dimension(140, 30));
         vender.setMaximumSize(new Dimension(140, 30));
 
-        derecha.add(comprar);
+        derecha.add(comprarButton);
         derecha.add(Box.createVerticalStrut(10));
         derecha.add(vender);
 
@@ -286,9 +347,18 @@ public class InvestmentPanel extends JPanel {
 
         JLabel l = new JLabel(txt);
 
-        l.setForeground(Color.BLACK);
+        l.setForeground(TEXT);
+        l.setFont(NORMAL_FONT);
+
         l.setAlignmentX(Component.LEFT_ALIGNMENT);
-        l.setMaximumSize(new Dimension(Integer.MAX_VALUE, 25));
+
+        l.setBorder(
+            BorderFactory.createEmptyBorder(4, 0, 4, 0)
+        );
+
+        l.setMaximumSize(
+            new Dimension(Integer.MAX_VALUE, 40)
+        );
 
         return l;
     }
@@ -297,11 +367,22 @@ public class InvestmentPanel extends JPanel {
 
         JButton b = new JButton(txt);
 
+        b.setFont(BUTTON_FONT);
+
         b.setAlignmentX(Component.CENTER_ALIGNMENT);
+
         b.setFocusPainted(false);
-        b.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-        b.setBackground(Color.WHITE);
-        b.setForeground(Color.BLACK);
+
+        b.setBackground(ACCENT);
+        b.setForeground(Color.WHITE);
+
+        b.setBorder(
+            BorderFactory.createEmptyBorder(10, 20, 10, 20)
+        );
+
+        b.setCursor(
+            new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR)
+        );
 
         return b;
     }
@@ -318,6 +399,8 @@ public class InvestmentPanel extends JPanel {
     }
     
     public void setCompanyInfo(CompanyData c) {
+    	nombreLabel.setFont(TITLE_FONT);
+    	actividadLabel.setFont(NORMAL_FONT);
 
         if (c == null) return;
 
@@ -326,8 +409,9 @@ public class InvestmentPanel extends JPanel {
         );
 
         actividadLabel.setText(
-                "Actividad principal: " +
-                c.getActividad()
+                "<html><div style='text-align:left;'>Descripcion:<br>" +
+                c.getActividad()+
+                "</div></html>"
         );
 
         accionesMercadoLabel.setText(
@@ -360,7 +444,7 @@ public class InvestmentPanel extends JPanel {
     public void setCost(double cost) {
 
         costeTotalLabel.setText(
-                "Coste total: $" + cost
+                "Coste total: ₲" + cost
         );
     }
     
@@ -374,6 +458,10 @@ public class InvestmentPanel extends JPanel {
     
     public JTextField getAccionesField() {
         return accionesField;
+    }
+    
+    public JButton getComprarButton() {
+        return comprarButton;
     }
     
     

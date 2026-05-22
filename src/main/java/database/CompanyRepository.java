@@ -17,7 +17,20 @@ public class CompanyRepository {
                 new ArrayList<>();
 
         String sql =
-                "SELECT * FROM Empresas";
+                "SELECT\r\n"
+                + "    e.id,\r\n"
+                + "    e.nombre,\r\n"
+                + "    e.descripcion,\r\n"
+                + "    e.total_acciones,\r\n"
+                + "    ca.n_acciones AS acciones_usuario,\r\n"
+                + "    e.valor_accion AS valor_accion,\r\n"
+                + "    e.marca\r\n"
+                + "FROM empresas e\r\n"
+                + "JOIN Stats ca\r\n"
+                + "    ON e.id = ca.empresa_id\r\n"
+                + "JOIN partidas_guardadas pg\r\n"
+                + "    ON ca.partida_id = pg.id\r\n"
+                + "WHERE pg.usuario_id = 1;";
 
         try (
 
@@ -36,18 +49,19 @@ public class CompanyRepository {
 
                 CompanyData company =
                         new CompanyData(
+                        		rs.getInt("Id"),
 
                                 rs.getString("Nombre"),
 
-                                rs.getString("Actividad"),
+                                rs.getString("Descripcion"),
 
                                 rs.getInt("Total_acciones"),
 
-                                0,
+                                rs.getInt("Acciones_usuario"),
 
-                                rs.getDouble(
-                                        "Valor_accion"
-                                )
+                                rs.getDouble("Valor_accion"),
+                                
+                                rs.getString("Marca")
                         );
 
                 companies.add(company);

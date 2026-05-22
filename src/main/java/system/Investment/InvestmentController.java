@@ -1,5 +1,6 @@
 package system.Investment;
 
+import system.Stats.StatsController;
 import tools.CompanyData;
 
 public class InvestmentController {
@@ -7,14 +8,18 @@ public class InvestmentController {
     private final InvestmentModel model;
 
     private final InvestmentPanel view;
+    
+    private final StatsController statsController;
 
     public InvestmentController(
             InvestmentModel model,
-            InvestmentPanel view
+            InvestmentPanel view,
+            StatsController statsController
     ) {
 
         this.model = model;
         this.view = view;
+		this.statsController = null;
 
         init();
     }
@@ -61,6 +66,11 @@ public class InvestmentController {
 
             syncTextToSlider();
         });
+        
+        view.getComprarButton().addActionListener(e -> {
+		    buyShares();
+		});
+        
     }
 
     private void updateView() {
@@ -113,5 +123,33 @@ public class InvestmentController {
                     model.getAccionesSeleccionadas()
             );
         }
+    }
+    
+    private void buyShares() {
+
+        CompanyData company =
+                model.getSelectedCompany();
+
+        if (company == null) return;
+
+        int cantidad =
+                model.getAccionesSeleccionadas();
+
+        if (cantidad <= 0) return;
+
+        // =========================
+        // ENVIAR A STATS
+        // =========================
+
+        statsController.buyShares(
+
+                company.getId(),
+
+                company.getNombre(),
+
+                cantidad,
+
+                company.getValorAccion()
+        );
     }
 }

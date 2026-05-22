@@ -1,26 +1,52 @@
 package tools;
 
 public class CompanyData {
-
+	
+	int id;
     String nombre;
     String actividad;
     int accionesMercado;
     int accionesPropiedad;
     double valorAccion;
+    String marca;
 
     public CompanyData(
+    		int id,
             String nombre,
             String actividad,
             int accionesMercado,
             int accionesPropiedad,
-            double valorAccion
+            double valorAccion,
+            String marca
     ) {
+    	this.id = id;
         this.nombre = nombre;
         this.actividad = actividad;
         this.accionesMercado = accionesMercado;
         this.accionesPropiedad = accionesPropiedad;
         this.valorAccion = valorAccion;
+        this.marca = marca;
     }
+
+	public String getMarca() {
+		return marca;
+	}
+
+	public void setMarca(String marca) {
+		this.marca = marca;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public void setValorAccion(double valorAccion) {
+		this.valorAccion = valorAccion;
+	}
 
 	public String getNombre() {
 		return nombre;
@@ -64,6 +90,6 @@ public class CompanyData {
 	
 	@Override
 	public String toString() {
-	    return nombre;
+	    return marca;
 	}
 }

@@ -25,6 +25,9 @@ import javax.swing.border.EmptyBorder;
 
 import system.Investment.InvestmentWindow;
 import system.News.NewsWindow;
+import system.Stats.StatsController;
+import system.Stats.StatsModel;
+import system.Stats.StatsPanel;
 import tools.Clock;
 import tools.DesktopGridLayout;
 import tools.OpenAppWindow;
@@ -41,6 +44,17 @@ public class GameWindow extends JPanel implements Screen {
     private WindowManager windowManager;
     private TaskBarManager taskBarManager;
     private String ruta = "/logos/";
+    
+    
+    
+    StatsModel statsModel = new StatsModel();
+
+    StatsPanel statsPanel = new StatsPanel();
+
+    StatsController statsController = new StatsController(
+                    statsModel,
+                    statsPanel
+            );
 
     public GameWindow(Runnable exit, Clock time) {
 
@@ -224,7 +238,7 @@ public class GameWindow extends JPanel implements Screen {
                 	if(texto.equals("Robbin Hub")) {
                     	abrirWindow(texto,
                     			Utils.escalarIcono(ruta+"RobbinHub(icono).png", 25),
-                    			InvestmentWindow.create()
+                    			InvestmentWindow.create(statsController)
                     			);
                     }
                 	if (texto.equals("Telégrafo de Montecristo")) {
@@ -236,7 +250,7 @@ public class GameWindow extends JPanel implements Screen {
                     if (texto.equals("Stats.U")) {
                     	abrirWindow(texto,
                     			Utils.escalarIcono(ruta+"Doors(Closed).png", 25),
-                    			new JPanel()
+                    			new StatsPanel()
                     			);
                     }
                     if (texto.equals("Tienda")) {

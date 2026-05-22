@@ -1,10 +1,10 @@
 package system.Investment;
 
-
+import system.Stats.StatsController;
 
 public class InvestmentWindow {
 
-    public static InvestmentPanel create() {
+    public static InvestmentPanel create(StatsController stats) {
      
         InvestmentModel model =
                 new InvestmentModel();
@@ -14,7 +14,8 @@ public class InvestmentWindow {
 
         new InvestmentController(
                 model,
-                view
+                view,
+                stats
         );
 
         return view;

@@ -92,9 +92,7 @@ public class StatsPanel extends JPanel {
     // ENTRY VISUAL
     // =====================================================
 
-    private JPanel createEntry(
-            PortfolioEntry p
-    ) {
+    private JPanel createEntry(PortfolioEntry p){
 
         JPanel panel =
                 new JPanel(
@@ -110,18 +108,15 @@ public class StatsPanel extends JPanel {
         panel.setBackground(Color.WHITE);
 
         panel.add(new JLabel(
-                "Empresa: "
-                + p.getEmpresaNombre()
+                "Empresa: " + p.getEmpresaNombre()
         ));
 
         panel.add(new JLabel(
-                "Acciones: "
-                + p.getAcciones()
+                "Acciones: " + p.getAcciones()
         ));
 
         panel.add(new JLabel(
-                "Valor: $"
-                + p.getValorTotal()
+                "Valor: ₲" + p.getValorTotal()
         ));
 
         return panel;
