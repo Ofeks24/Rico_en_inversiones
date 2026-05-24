@@ -43,8 +43,8 @@ public class MainMenu extends JPanel implements Screen {
     };
     
     
-    private String ruta = "/logos/";
-    private String ruta2 = "/sprites/";
+    private String ruta = "/main/resources/logos/";
+    private String ruta2 = "/main/resources/sprites/";
 
 
     private final ImageIcon logoIcon = Utils.icon(ruta+"Rico en inversiones_logo.png");
@@ -82,17 +82,17 @@ public class MainMenu extends JPanel implements Screen {
         botones[0].getBoton().addActionListener(e -> {
             if (onStart != null) onStart.run();
         });
-        ButtonSoundHelper.addHoverSound(botones[0].getBoton(),"/audio/sfx/ping-menu-sound.mp3");
+        ButtonSoundHelper.addHoverSound(botones[0].getBoton(),"/main/resources/audio/sfx/ping-menu-sound.wav");
 
         botones[1].getBoton().addActionListener(e -> {
             if (onOptions != null) onOptions.run();
         });
-        ButtonSoundHelper.addHoverSound(botones[1].getBoton(),"/audio/sfx/ping-menu-sound.mp3");
+        ButtonSoundHelper.addHoverSound(botones[1].getBoton(),"/main/resources/audio/sfx/ping-menu-sound.wav");
 
         botones[2].getBoton().addActionListener(e -> {
             if (onExit != null) onExit.run();
         });
-        ButtonSoundHelper.addHoverSound(botones[2].getBoton(),"/audio/sfx/ping-menu-sound.mp3");
+        ButtonSoundHelper.addHoverSound(botones[2].getBoton(),"/main/resources/audio/sfx/ping-menu-sound.wav");
 
         for (BotonAjustable b : botones) {
             JButton btn = b.getBoton();
@@ -218,7 +218,7 @@ public class MainMenu extends JPanel implements Screen {
 
     @Override
     public void onShow() {
-        AudioManager.getInstance().playMusic("/audio/music/Cambio-Pixelado.mp3");
+        AudioManager.getInstance().playMusic("/main/resources/audio/music/Cambio-Pixelado.wav");
         startButtonsAnimation();
     }
 

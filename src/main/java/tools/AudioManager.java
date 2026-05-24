@@ -1,10 +1,6 @@
 package tools;
 
-import javazoom.jl.decoder.JavaLayerException;
-import javazoom.jl.player.advanced.AdvancedPlayer;
-import javazoom.jl.player.advanced.PlaybackEvent;
-import javazoom.jl.player.advanced.PlaybackListener;
-
+import javax.sound.sampled.*;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 
@@ -19,13 +15,12 @@ public class AudioManager {
     }
 
     // ── Estado ────────────────────────────────────────────
-    private Thread      musicThread;
-    private AdvancedPlayer musicPlayer;
-    private String      currentMusic;
-    private boolean     musicEnabled = true;
-    private boolean     sfxEnabled   = true;
-    private float       musicVolume  = 1.0f; // reservado para futuro
-    private volatile boolean looping = false;
+    private Clip    musicClip;
+    private String  currentMusic;
+    private boolean musicEnabled = true;
+    private boolean sfxEnabled   = true;
+    private float   musicVolume  = 0.8f; // 0.0 a 1.0
+    private float   sfxVolume    = 1.0f;
 
     private AudioManager() {}
 
@@ -33,101 +28,120 @@ public class AudioManager {
     // MÚSICA DE FONDO (en bucle)
     // =========================================================
 
-    /**
-     * Reproduce una pista de música en bucle.
-     * Si ya suena la misma pista, no hace nada.
-     * Ruta relativa al classpath: "/audio/music/menu.mp3"
-     */
     public void playMusic(String rutaClasspath) {
         if (!musicEnabled) return;
-        if (rutaClasspath.equals(currentMusic)) return;
+        if (rutaClasspath.equals(currentMusic)
+                && musicClip != null
+                && musicClip.isRunning()) return;
 
         stopMusic();
 
-        currentMusic = rutaClasspath;
-        looping      = true;
-
-        musicThread = new Thread(() -> {
-            while (looping) {
-                try {
-                    InputStream raw = AudioManager.class
-                            .getResourceAsStream(rutaClasspath);
-                    if (raw == null) {
-                        System.err.println("[AudioManager] "
-                                + "No se encontró: " + rutaClasspath);
-                        return;
-                    }
-                    BufferedInputStream bis =
-                            new BufferedInputStream(raw);
-                    musicPlayer = new AdvancedPlayer(bis);
-                    musicPlayer.setPlayBackListener(
-                        new PlaybackListener() {
-                            @Override
-                            public void playbackFinished(PlaybackEvent e) {
-                                // el bucle lo controla el while
-                            }
-                        }
-                    );
-                    musicPlayer.play(); // bloquea hasta que termina
-                } catch (JavaLayerException e) {
-                    if (looping) e.printStackTrace();
-                    // Si looping es false, es un stop() intencionado
-                }
+        try {
+            InputStream raw = AudioManager.class
+                    .getResourceAsStream(rutaClasspath);
+            if (raw == null) {
+                System.err.println("[AudioManager] No encontrado: "
+                        + rutaClasspath);
+                return;
             }
-        });
 
-        musicThread.setDaemon(true); // se cierra con la app
-        musicThread.start();
+            AudioInputStream ais = AudioSystem.getAudioInputStream(
+                    new BufferedInputStream(raw)
+            );
+
+            musicClip = AudioSystem.getClip();
+            musicClip.open(ais);
+            setClipVolume(musicClip, musicVolume);
+            musicClip.loop(Clip.LOOP_CONTINUOUSLY);
+            musicClip.start();
+
+            currentMusic = rutaClasspath;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void stopMusic() {
-        looping = false;
-        if (musicPlayer != null) {
-            musicPlayer.close(); // interrumpe el play() bloqueante
-        }
-        if (musicThread != null) {
-            musicThread.interrupt();
+        if (musicClip != null) {
+            musicClip.stop();
+            musicClip.close();
+            musicClip = null;
         }
         currentMusic = null;
     }
 
     public void pauseMusic() {
-        // JLayer no soporta pausa real; lo más limpio es stop + recordar posición
-        // Para un juego sencillo, stop es suficiente
-        stopMusic();
+        if (musicClip != null && musicClip.isRunning())
+            musicClip.stop(); // conserva la posición
+    }
+
+    public void resumeMusic() {
+        if (!musicEnabled) return;
+        if (musicClip != null && !musicClip.isRunning())
+            musicClip.start();
     }
 
     // =========================================================
-    // EFECTOS DE SONIDO (no bloquean el hilo principal)
+    // EFECTOS DE SONIDO
     // =========================================================
 
     /**
-     * Reproduce un efecto de sonido una sola vez.
-     * Cada llamada lanza un hilo independiente para no bloquear la UI.
+     * Cada efecto abre su propio Clip en un hilo aparte
+     * para no bloquear la UI y permitir solapamiento.
      */
     public void playSfx(String rutaClasspath) {
         if (!sfxEnabled) return;
 
-        Thread sfxThread = new Thread(() -> {
+        new Thread(() -> {
             try {
                 InputStream raw = AudioManager.class
                         .getResourceAsStream(rutaClasspath);
                 if (raw == null) {
-                    System.err.println("[AudioManager] "
-                            + "No se encontró: " + rutaClasspath);
+                    System.err.println("[AudioManager] No encontrado: "
+                            + rutaClasspath);
                     return;
                 }
-                AdvancedPlayer player =
-                        new AdvancedPlayer(new BufferedInputStream(raw));
-                player.play();
-            } catch (JavaLayerException e) {
+
+                AudioInputStream ais = AudioSystem.getAudioInputStream(
+                        new BufferedInputStream(raw)
+                );
+
+                Clip clip = AudioSystem.getClip();
+                clip.open(ais);
+                setClipVolume(clip, sfxVolume);
+
+                // Cerrar el clip automáticamente al terminar
+                clip.addLineListener(event -> {
+                    if (event.getType() == LineEvent.Type.STOP) {
+                        clip.close();
+                    }
+                });
+
+                clip.start();
+
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-        });
-
-        sfxThread.setDaemon(true);
-        sfxThread.start();
+        }, "sfx-thread").start();
     }
+
+    // =========================================================
+    // VOLUMEN  (0.0 = silencio, 1.0 = máximo)
+    // =========================================================
+
+    public void setMusicVolume(float vol) {
+        musicVolume = clamp(vol);
+        if (musicClip != null)
+            setClipVolume(musicClip, musicVolume);
+    }
+
+    public void setSfxVolume(float vol) {
+        sfxVolume = clamp(vol);
+    }
+
+    public float getMusicVolume() { return musicVolume; }
+    public float getSfxVolume()   { return sfxVolume;   }
 
     // =========================================================
     // ACTIVAR / DESACTIVAR
@@ -144,4 +158,23 @@ public class AudioManager {
 
     public boolean isMusicEnabled() { return musicEnabled; }
     public boolean isSfxEnabled()   { return sfxEnabled;   }
+
+    // =========================================================
+    // INTERNO
+    // =========================================================
+
+    private void setClipVolume(Clip clip, float vol) {
+        if (clip.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+            FloatControl gain = (FloatControl)
+                    clip.getControl(FloatControl.Type.MASTER_GAIN);
+            // Convertir 0.0-1.0 a decibelios (rango típico: -80 a 6 dB)
+            float dB = (float)(Math.log10(Math.max(vol, 0.0001)) * 20);
+            gain.setValue(Math.max(gain.getMinimum(),
+                          Math.min(gain.getMaximum(), dB)));
+        }
+    }
+
+    private float clamp(float v) {
+        return Math.max(0f, Math.min(1f, v));
+    }
 }

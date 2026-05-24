@@ -23,16 +23,13 @@ public class CompanyRepository {
                 + "    e.nombre,\r\n"
                 + "    e.descripcion,\r\n"
                 + "    e.total_acciones,\r\n"
-                + "    ca.n_acciones AS acciones_usuario,\r\n"
-                + "    e.valor_accion AS valor_accion,\r\n"
+                + "    COALESCE(ca.n_acciones, 0) AS acciones_usuario,\r\n"
+                + "    e.valor_accion,\r\n"
                 + "    e.marca,\r\n"
                 + "    e.sector\r\n"
-                + "FROM empresas e\r\n"
-                + "JOIN Stats ca\r\n"
-                + "    ON e.id = ca.empresa_id\r\n"
-                + "JOIN partidas_guardadas pg\r\n"
-                + "    ON ca.partida_id = pg.id\r\n"
-                + "WHERE pg.usuario_id = 1;";
+                + "FROM Empresas e\r\n"
+                + "LEFT JOIN Partidas_guardadas pg ON pg.usuario_id = 1\r\n"
+                + "LEFT JOIN Stats ca ON ca.empresa_id = e.id AND ca.partida_id = pg.id;";
 
         try (
 

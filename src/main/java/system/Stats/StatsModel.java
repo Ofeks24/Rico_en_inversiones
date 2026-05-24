@@ -1,23 +1,30 @@
 package system.Stats;
 
 import database.CompanyRepository;
+import tools.MarketService;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class StatsModel {
 
     private final List<PortfolioEntry> portfolio = new ArrayList<>();
-    private final CompanyRepository repo = new CompanyRepository();
+    private final CompanyRepository    repo      = new CompanyRepository();
+    private final MarketService        market;
 
-    // ── Cargar desde BD al construir ──────────────────────
-    public StatsModel() {
+    // ── Constructor ───────────────────────────────────────
+    public StatsModel(MarketService market) {
+        this.market = market;
+
+        // Cargar posiciones persistidas en BD
         repo.getAllCompanies().forEach(c -> {
             if (c.getAccionesPropiedad() > 0) {
                 portfolio.add(new PortfolioEntry(
                     c.getId(),
                     c.getNombre(),
                     c.getAccionesPropiedad(),
-                    c.getValorAccion()
+                    c.getValorAccion(),   // precio de compra histórico
+                    market
                 ));
             }
         });
@@ -26,17 +33,16 @@ public class StatsModel {
     public List<PortfolioEntry> getPortfolio() { return portfolio; }
 
     // ── Comprar ───────────────────────────────────────────
-    public void buyShares(int empresaId, String empresaNombre,
+    public void buyShares(int empresaId, String nombre,
                           int cantidad, double valorAccion) {
         PortfolioEntry existing = findEntry(empresaId);
         if (existing != null) {
             existing.setAcciones(existing.getAcciones() + cantidad);
             repo.guardarAcciones(empresaId, existing.getAcciones());
         } else {
-            PortfolioEntry entry = new PortfolioEntry(
-                empresaId, empresaNombre, cantidad, valorAccion
-            );
-            portfolio.add(entry);
+            portfolio.add(new PortfolioEntry(
+                empresaId, nombre, cantidad, valorAccion, market
+            ));
             repo.guardarAcciones(empresaId, cantidad);
         }
     }
@@ -55,16 +61,17 @@ public class StatsModel {
         }
     }
 
+    // ── Valor total a precio de mercado ───────────────────
+    public double getTotalValue() {
+        double total = 0;
+        for (PortfolioEntry p : portfolio)
+            total += p.getValorTotal();   // precio en tiempo real
+        return total;
+    }
+
     private PortfolioEntry findEntry(int empresaId) {
         for (PortfolioEntry p : portfolio)
             if (p.getEmpresaId() == empresaId) return p;
         return null;
-    }
-
-    public double getTotalValue() {
-        double total = 0;
-        for (PortfolioEntry p : portfolio)
-            total += p.getValorTotal();
-        return total;
     }
 }

@@ -13,7 +13,7 @@ public class LoadingScreen extends JPanel {
         this.onFinish = onFinish;
 
         logo = new ImageIcon(
-        	    getClass().getResource("/logos/theIMPERIALOne(TEXTO)_logo (pequeño).png")
+        	    getClass().getResource("/main/resources/logos/theIMPERIALOne(TEXTO)_logo (pequeño).png")
         	).getImage();
         if (logo == null) return;
         setFocusable(true);

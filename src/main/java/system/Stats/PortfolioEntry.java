@@ -1,50 +1,59 @@
 package system.Stats;
 
+import tools.MarketService;
+
 public class PortfolioEntry {
 
-    private int empresaId;
-
+    private int    empresaId;
     private String empresaNombre;
+    private int    acciones;
 
-    private int acciones;
+    // precio de compra (referencia histórica)
+    private double valorCompra;
 
-    private double valorAccion;
+    // referencia al mercado para precio en tiempo real
+    private MarketService market;
 
-    public PortfolioEntry(
-            int empresaId,
-            String empresaNombre,
-            int acciones,
-            double valorAccion
-    ) {
-
-        this.empresaId = empresaId;
+    // ── Constructor con mercado (uso normal) ──────────────
+    public PortfolioEntry(int empresaId, String empresaNombre,
+                          int acciones, double valorCompra,
+                          MarketService market) {
+        this.empresaId     = empresaId;
         this.empresaNombre = empresaNombre;
-        this.acciones = acciones;
-        this.valorAccion = valorAccion;
+        this.acciones      = acciones;
+        this.valorCompra   = valorCompra;
+        this.market        = market;
     }
 
-    public int getEmpresaId() {
-        return empresaId;
+    // ── Constructor sin mercado (compatibilidad) ──────────
+    public PortfolioEntry(int empresaId, String empresaNombre,
+                          int acciones, double valorCompra) {
+        this(empresaId, empresaNombre, acciones, valorCompra, null);
     }
 
-    public String getEmpresaNombre() {
-        return empresaNombre;
-    }
+    // ── Getters ───────────────────────────────────────────
+    public int    getEmpresaId()     { return empresaId;     }
+    public String getEmpresaNombre() { return empresaNombre; }
+    public int    getAcciones()      { return acciones;      }
+    public void   setAcciones(int a) { acciones = a;         }
 
-    public int getAcciones() {
-        return acciones;
-    }
-
-    public void setAcciones(int acciones) {
-        this.acciones = acciones;
-    }
-
+    /** Precio actual de mercado (o precio de compra si no hay market) */
     public double getValorAccion() {
-        return valorAccion;
+        if (market == null) return valorCompra;
+        // El último close del historial es el precio actual
+        java.util.List<tools.Candle> hist = market.getHistory(empresaId);
+        if (hist == null || hist.isEmpty()) return valorCompra;
+        return hist.get(hist.size() - 1).getClose();
     }
 
+    /** Valor total a precio de mercado */
     public double getValorTotal() {
+        return acciones * getValorAccion();
+    }
 
-        return acciones * valorAccion;
+    /** Ganancia/pérdida respecto al precio de compra */
+    public double getGananciaPct() {
+        if (valorCompra <= 0) return 0;
+        return (getValorAccion() - valorCompra) / valorCompra * 100.0;
     }
 }

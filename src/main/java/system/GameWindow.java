@@ -30,6 +30,7 @@ import system.News.NewsWindow;
 import system.Stats.StatsController;
 import system.Stats.StatsModel;
 import system.Stats.StatsPanel;
+import tools.AudioManager;
 import tools.Clock;
 import tools.CompanyData;
 import tools.DesktopGridLayout;
@@ -48,7 +49,7 @@ public class GameWindow extends JPanel implements Screen {
     private JDesktopPane appsLayer = new JDesktopPane();
     private WindowManager windowManager;
     private TaskBarManager taskBarManager;
-    private String ruta = "/logos/";
+    private String ruta = "/main/resources/logos/";
     private final MarketService market   = new MarketService();
     private final NewsGenerator newsGen  = new NewsGenerator();
     private       List<CompanyData> companies;
@@ -75,13 +76,14 @@ public class GameWindow extends JPanel implements Screen {
         GridBagConstraints gbc = new GridBagConstraints();
         
         
-        StatsModel statsModel = new StatsModel();
+        StatsModel statsModel = new StatsModel(market);
         statsPanel = new StatsPanel();
         statsController = new StatsController(
-        	    statsModel,
-        	    statsPanel,
-        	    player          // ← nuevo parámetro
-        	);
+                statsModel,
+                statsPanel,
+                player,
+                market
+        );
 
         // =================================================
         // ESCRITORIO (FONDO)
@@ -399,6 +401,7 @@ public class GameWindow extends JPanel implements Screen {
 
 	@Override
 	public void onShow() {
+		AudioManager.getInstance().playMusic("/main/resources/audio/music/Paso-de-Papel.wav");
 		time.initClock(2000);
 	}
 

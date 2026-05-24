@@ -1,11 +1,14 @@
 package tools;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
+
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class NewsTemplateLoader {
 
@@ -20,14 +23,13 @@ public class NewsTemplateLoader {
 
         try {
             // Intentar cargar desde classpath (dentro del jar/resources)
-            InputStream is = NewsTemplateLoader.class
-                    .getResourceAsStream("/data/news_templates.json");
+        	InputStream is = NewsTemplateLoader.class.getResourceAsStream("/main/resources/files/news_templates.json");
 
             // Si no está en classpath, cargar desde disco
             if (is == null) {
-                java.io.File file = new java.io.File(
+                File file = new File(
                         System.getProperty("user.dir")
-                        + "/data/news_templates.json"
+                        + "/main/resources/files/news_templates.json"
                 );
                 is = new java.io.FileInputStream(file);
             }

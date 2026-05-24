@@ -1,3 +1,4 @@
+
 package system.Investment;
 
 import javax.swing.SwingUtilities;
@@ -9,188 +10,222 @@ import tools.MarketService;
 
 public class InvestmentController {
 
-    private final InvestmentModel model;
+    private final InvestmentModel  model;
+    private final InvestmentPanel  view;
+    private final StatsController  statsController;
+    private final MarketService    market;
 
-    private final InvestmentPanel view;
-    
-    private final StatsController statsController;
-    
-    private final MarketService market;
+    // Cantidad seleccionada en cada slider (independientes)
+    private int accionesComprar = 0;
+    private int accionesVender  = 0;
 
     public InvestmentController(
             InvestmentModel model,
             InvestmentPanel view,
             StatsController statsController,
-            MarketService market          // ← nuevo parámetro
+            MarketService market
     ) {
-        this.model = model;
-        this.view = view;
+        this.model           = model;
+        this.view            = view;
         this.statsController = statsController;
-        this.market = market;
+        this.market          = market;
         init();
     }
 
+    // =====================================================
+    // INICIALIZACIÓN
+    // =====================================================
+
     private void init() {
 
-        // empresa inicial
-        view.setCompanies(
-                model.getCompanies()
-        );
-
+        view.setCompanies(model.getCompanies());
         updateView();
 
-        // dropdown
+        // ── Dropdown ──────────────────────────────────────
         view.getCompanyDropdown().addActionListener(e -> {
-            CompanyData selected = (CompanyData) view.getCompanyDropdown().getSelectedItem();
-            model.setSelectedCompany(selected);
-            model.setAccionesSeleccionadas(0);
-            view.setChartEmpresa(selected.getId()); // ← añadir esta línea
+            CompanyData sel = (CompanyData) view.getCompanyDropdown().getSelectedItem();
+            if (sel == null) return;
+            model.setSelectedCompany(sel);
+            accionesComprar = 0;
+            accionesVender  = 0;
+            view.setChartEmpresa(sel.getId());
             updateView();
         });
 
-        // slider
-        view.getSlider().addChangeListener(e -> {
-
-            model.setAccionesSeleccionadas(view.getSlider().getValue());
-
-            updateCost();
+        // ── Slider COMPRAR ────────────────────────────────
+        view.getBuySlider().addChangeListener(e -> {
+            accionesComprar = view.getBuySlider().getValue();
+            view.getBuyField().setText(String.valueOf(accionesComprar));
+            view.setBuyCost(calcBuyCost());
         });
 
-        // textbox
-        view.getAccionesField()
-                .addActionListener(e -> {
+        view.getBuyField().addActionListener(e -> syncBuyField());
 
-            syncTextToSlider();
+        // ── Slider VENDER ─────────────────────────────────
+        view.getSellSlider().addChangeListener(e -> {
+            accionesVender = view.getSellSlider().getValue();
+            view.getSellField().setText(String.valueOf(accionesVender));
+            view.setSellIncome(calcSellIncome());
         });
-        
-        view.getComprarButton().addActionListener(e -> {
-		    buyShares();
-		});
-        view.getVenderButton().addActionListener(e -> sellShares());
-        
+
+        view.getSellField().addActionListener(e -> syncSellField());
+
+        // ── Botones ───────────────────────────────────────
+        view.getComprarButton().addActionListener(e -> buyShares());
+        view.getVenderButton() .addActionListener(e -> sellShares());
+
+        // ── Listener de mercado (precio en tiempo real) ───
         market.addListener(() -> SwingUtilities.invokeLater(() -> {
             CompanyData c = model.getSelectedCompany();
             if (c == null) return;
+
+            // Actualizar labels de precio y disponibles
             view.updateMarketInfo(c);
-            // Recalcular máximo del slider con precio actualizado
-            int nuevoMax = model.getMaxAccionesComprables();
-            int valorActual = view.getSlider().getValue();
-            view.getSlider().setMaximum(nuevoMax);
-            // Si el valor actual supera el nuevo máximo, ajustarlo
-            if (valorActual > nuevoMax) {
-                view.getSlider().setValue(nuevoMax);
-                model.setAccionesSeleccionadas(nuevoMax);
-                updateCost();
+
+            // Recalcular máximo de compra (precio cambió → dinero alcanza diferente cantidad)
+            int nuevoMaxBuy = model.getMaxAccionesComprables();
+            view.setBuyMax(nuevoMaxBuy);
+            if (accionesComprar > nuevoMaxBuy) {
+                accionesComprar = nuevoMaxBuy;
+                view.setBuyValue(accionesComprar);
             }
+            view.setBuyCost(calcBuyCost());
+
+            // El máximo de venta no cambia (depende de acciones propias, no del precio)
+            view.setSellIncome(calcSellIncome());
         }));
-        
     }
 
-    private void updateView() {
+    // =====================================================
+    // ACTUALIZAR VISTA AL CAMBIAR DE EMPRESA
+    // =====================================================
 
-        CompanyData c =
-                model.getSelectedCompany();
+    private void updateView() {
+        CompanyData c = model.getSelectedCompany();
+        if (c == null) return;
 
         view.setCompanyInfo(c);
 
-        view.getSlider().setMaximum(model.getMaxAccionesComprables());
+        // Máximos de cada slider
+        int maxBuy  = model.getMaxAccionesComprables();
+        int maxSell = c.getAccionesPropiedad();
 
-        view.getSlider().setValue(0);
+        view.setBuyMax(maxBuy);
+        view.setSellMax(maxSell);
 
-        updateCost();
+        // Resetear valores
+        view.setBuyValue(0);
+        view.setSellValue(0);
+        accionesComprar = 0;
+        accionesVender  = 0;
+
+        view.setBuyCost(0);
+        view.setSellIncome(0);
     }
 
-    private void updateCost() {
+    // =====================================================
+    // SINCRONIZAR CAMPOS DE TEXTO → SLIDERS
+    // =====================================================
 
-        view.setSelectedActions(
-                model.getAccionesSeleccionadas()
-        );
-
-        view.setCost(
-                model.getCosteTotal()
-        );
-    }
-
-    private void syncTextToSlider() {
-
+    private void syncBuyField() {
         try {
-
-            int value = Integer.parseInt(
-                    view.getAccionesField().getText()
-            );
-
-            value = Math.max(0, value);
-
-            value = Math.min(
-                    view.getSlider().getMaximum(),
-                    value
-            );
-
-            view.getSlider().setValue(value);
-
+            int v = Integer.parseInt(view.getBuyField().getText().trim());
+            v = Math.max(0, Math.min(v, view.getBuySlider().getMaximum()));
+            accionesComprar = v;
+            view.getBuySlider().setValue(v);
+            view.setBuyCost(calcBuyCost());
         } catch (NumberFormatException ex) {
-
-            view.setSelectedActions(
-                    model.getAccionesSeleccionadas()
-            );
+            view.getBuyField().setText(String.valueOf(accionesComprar));
         }
     }
-    
+
+    private void syncSellField() {
+        try {
+            int v = Integer.parseInt(view.getSellField().getText().trim());
+            v = Math.max(0, Math.min(v, view.getSellSlider().getMaximum()));
+            accionesVender = v;
+            view.getSellSlider().setValue(v);
+            view.setSellIncome(calcSellIncome());
+        } catch (NumberFormatException ex) {
+            view.getSellField().setText(String.valueOf(accionesVender));
+        }
+    }
+
+    // =====================================================
+    // CÁLCULOS
+    // =====================================================
+
+    private double calcBuyCost() {
+        CompanyData c = model.getSelectedCompany();
+        if (c == null) return 0;
+        return accionesComprar * c.getValorAccion();
+    }
+
+    private double calcSellIncome() {
+        CompanyData c = model.getSelectedCompany();
+        if (c == null) return 0;
+        return accionesVender * c.getValorAccion();
+    }
+
+    // =====================================================
+    // COMPRAR
+    // =====================================================
+
     private void buyShares() {
-
-        CompanyData company = model.getSelectedCompany();
-        if (company == null) return;
-
-        int cantidad = model.getAccionesSeleccionadas();
-        if (cantidad <= 0) return;
+        CompanyData c = model.getSelectedCompany();
+        if (c == null || accionesComprar <= 0) return;
 
         statsController.buyShares(
-            company.getId(),
-            company.getNombre(),
-            cantidad,
-            company.getValorAccion()
+            c.getId(), c.getNombre(),
+            accionesComprar, c.getValorAccion()
         );
 
-        // ── Actualizar accionesPropiedad en el CompanyData ──
-        company.setAccionesPropiedad(
-            company.getAccionesPropiedad() + cantidad
-        );
+        // Actualizar estado local de la empresa
+        c.setAccionesPropiedad(c.getAccionesPropiedad() + accionesComprar);
+        view.refreshOwnership(c);
 
-        // ── Refrescar label de propiedad y disponibles ──────
-        view.refreshOwnership(company);
+        // El máximo de venta crece
+        view.setSellMax(c.getAccionesPropiedad());
 
-        // ── Resetear slider ─────────────────────────────────
-        model.setAccionesSeleccionadas(0);
-        view.getSlider().setMaximum(model.getMaxAccionesComprables());
-        view.getSlider().setValue(0);
-        updateCost();
-        AudioManager.getInstance().playSfx("/audio/sfx/cash-register-sound-efect.mp3");
+        // Resetear slider de compra
+        accionesComprar = 0;
+        view.setBuyMax(model.getMaxAccionesComprables());
+        view.setBuyValue(0);
+        view.setBuyCost(0);
+
+        AudioManager.getInstance().playSfx("/main/resources/audio/sfx/cash-register-sound-efect.wav");
     }
-    
+
+    // =====================================================
+    // VENDER
+    // =====================================================
+
     private void sellShares() {
-        CompanyData company = model.getSelectedCompany();
-        if (company == null) return;
-        int cantidad = model.getAccionesSeleccionadas();
-        if (cantidad <= 0) { 
-        	AudioManager.getInstance().playSfx("/audio/sfx/wrong-beep.mp3");
-        	return;
+        CompanyData c = model.getSelectedCompany();
+        if (c == null || accionesVender <= 0) {
+            AudioManager.getInstance().playSfx("/main/resources/audio/sfx/wrong-beep.wav");
+            return;
         }
 
         statsController.sellShares(
-            company.getId(),
-            cantidad,
-            company.getValorAccion()   // precio actual de mercado
+            c.getId(), accionesVender, c.getValorAccion()
         );
 
-        company.setAccionesPropiedad(
-            Math.max(0, company.getAccionesPropiedad() - cantidad)
+        // Actualizar estado local de la empresa
+        c.setAccionesPropiedad(
+            Math.max(0, c.getAccionesPropiedad() - accionesVender)
         );
+        view.refreshOwnership(c);
 
-        view.refreshOwnership(company);
-        model.setAccionesSeleccionadas(0);
-        view.getSlider().setMaximum(model.getMaxAccionesComprables());
-        view.getSlider().setValue(0);
-        updateCost();
-        AudioManager.getInstance().playSfx("/audio/sfx/cash-register-sound-efect.mp3");
+        // El máximo de venta decrece; el de compra puede subir (más dinero)
+        view.setSellMax(c.getAccionesPropiedad());
+        view.setBuyMax(model.getMaxAccionesComprables());
+
+        // Resetear slider de venta
+        accionesVender = 0;
+        view.setSellValue(0);
+        view.setSellIncome(0);
+
+        AudioManager.getInstance().playSfx("/main/resources/audio/sfx/cash-register-sound-efect.wav");
     }
 }
