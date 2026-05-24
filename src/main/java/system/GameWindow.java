@@ -11,6 +11,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseEvent;
+import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -23,13 +24,17 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
+import database.CompanyRepository;
 import system.Investment.InvestmentWindow;
 import system.News.NewsWindow;
 import system.Stats.StatsController;
 import system.Stats.StatsModel;
 import system.Stats.StatsPanel;
 import tools.Clock;
+import tools.CompanyData;
 import tools.DesktopGridLayout;
+import tools.MarketService;
+import tools.NewsGenerator;
 import tools.OpenAppWindow;
 import tools.Screen;
 import tools.TaskBarManager;
@@ -44,17 +49,16 @@ public class GameWindow extends JPanel implements Screen {
     private WindowManager windowManager;
     private TaskBarManager taskBarManager;
     private String ruta = "/logos/";
+    private final MarketService market   = new MarketService();
+    private final NewsGenerator newsGen  = new NewsGenerator();
+    private       List<CompanyData> companies;
+    private final Player player = Player.getInstance();
+    StatsPanel statsPanel;
+    StatsController statsController;
     
     
     
-    StatsModel statsModel = new StatsModel();
-
-    StatsPanel statsPanel = new StatsPanel();
-
-    StatsController statsController = new StatsController(
-                    statsModel,
-                    statsPanel
-            );
+    
 
     public GameWindow(Runnable exit, Clock time) {
 
@@ -62,9 +66,22 @@ public class GameWindow extends JPanel implements Screen {
         JPanel root = new JPanel(new GridBagLayout());
         setLayout(new BorderLayout());
         add(root, BorderLayout.CENTER);
+        
+        companies = new CompanyRepository().getAllCompanies();
+        for (CompanyData c : companies)
+            market.initCompany(c.getId(), c.getValorAccion());
 
-
+        time.addListener(() -> market.tick(companies));
         GridBagConstraints gbc = new GridBagConstraints();
+        
+        
+        StatsModel statsModel = new StatsModel();
+        statsPanel = new StatsPanel();
+        statsController = new StatsController(
+        	    statsModel,
+        	    statsPanel,
+        	    player          // ← nuevo parámetro
+        	);
 
         // =================================================
         // ESCRITORIO (FONDO)
@@ -238,21 +255,21 @@ public class GameWindow extends JPanel implements Screen {
                 	if(texto.equals("Robbin Hub")) {
                     	abrirWindow(texto,
                     			Utils.escalarIcono(ruta+"RobbinHub(icono).png", 25),
-                    			InvestmentWindow.create(statsController)
+                    			InvestmentWindow.create(statsController, market)
                     			);
                     }
                 	if (texto.equals("Telégrafo de Montecristo")) {
                     	abrirWindow(texto,
                     			Utils.escalarIcono(ruta+"TelegrafoDeMontecristo(icono)(1).png", 25),
-                    			new NewsWindow(10000)
+                    			new NewsWindow(10000, market, newsGen, companies)
                     			);
                     }
-                    if (texto.equals("Stats.U")) {
-                    	abrirWindow(texto,
-                    			Utils.escalarIcono(ruta+"Doors(Closed).png", 25),
-                    			new StatsPanel()
-                    			);
-                    }
+                	if (texto.equals("Stats.U")) {
+                	    abrirWindow(texto,
+                	        Utils.escalarIcono(ruta+"Doors(Closed).png", 25),
+                	        statsPanel         // ← con datos reales
+                	    );
+                	}
                     if (texto.equals("Tienda")) {
                     	abrirWindow(texto,
                     			Utils.escalarIcono(ruta+"Doors(Closed).png", 25),

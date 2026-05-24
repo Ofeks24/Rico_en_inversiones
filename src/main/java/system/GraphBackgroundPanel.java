@@ -1,6 +1,9 @@
 package system;
 
 import javax.swing.*;
+
+import tools.Candle;
+
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.Random;
@@ -63,7 +66,7 @@ public class GraphBackgroundPanel extends JPanel {
     }*/
 
     private void updateGraph() {
-        double lastClose = candles.get(candles.size() - 1).close;
+        double lastClose = candles.get(candles.size() - 1).getClose();
 
         double open = lastClose;
         double drift = (r.nextDouble() * 30 - 15);
@@ -98,8 +101,8 @@ public class GraphBackgroundPanel extends JPanel {
         double max = Double.MIN_VALUE;
 
         for (Candle c : candles) {
-            min = Math.min(min, c.low);
-            max = Math.max(max, c.high);
+            min = Math.min(min, c.getLow());
+            max = Math.max(max, c.getHigh());
         }
 
         double range = max - min;
@@ -128,12 +131,12 @@ public class GraphBackgroundPanel extends JPanel {
 
             if (x < -100 || x > w + 100) continue;
 
-            int openY  = (int)(h - (c.open  - min) * scaleYDynamic);
-            int closeY = (int)(h - (c.close - min) * scaleYDynamic);
-            int highY  = (int)(h - (c.high  - min) * scaleYDynamic);
-            int lowY   = (int)(h - (c.low   - min) * scaleYDynamic);
+            int openY  = (int)(h - (c.getOpen()  - min) * scaleYDynamic);
+            int closeY = (int)(h - (c.getClose() - min) * scaleYDynamic);
+            int highY  = (int)(h - (c.getHigh()  - min) * scaleYDynamic);
+            int lowY   = (int)(h - (c.getLow()   - min) * scaleYDynamic);
 
-            boolean bullish = c.close >= c.open;
+            boolean bullish = c.getClose() >= c.getOpen();
 
             g2.setColor(bullish
                     ? new Color(0, 255, 140)
@@ -151,18 +154,5 @@ public class GraphBackgroundPanel extends JPanel {
 
         g2.dispose();
     }
-
-    // =====================
-    // Clase interna Candle
-    // =====================
-    static class Candle {
-        double open, high, low, close;
-
-        Candle(double open, double high, double low, double close) {
-            this.open = open;
-            this.high = high;
-            this.low = low;
-            this.close = close;
-        }
-    }
+    
 }

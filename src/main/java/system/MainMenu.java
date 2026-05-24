@@ -18,7 +18,9 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import tools.AudioManager;
 import tools.BotonAjustable;
+import tools.ButtonSoundHelper;
 import tools.Screen;
 import tools.Utils;
 
@@ -80,14 +82,17 @@ public class MainMenu extends JPanel implements Screen {
         botones[0].getBoton().addActionListener(e -> {
             if (onStart != null) onStart.run();
         });
+        ButtonSoundHelper.addHoverSound(botones[0].getBoton(),"/audio/sfx/ping-menu-sound.mp3");
 
         botones[1].getBoton().addActionListener(e -> {
             if (onOptions != null) onOptions.run();
         });
+        ButtonSoundHelper.addHoverSound(botones[1].getBoton(),"/audio/sfx/ping-menu-sound.mp3");
 
         botones[2].getBoton().addActionListener(e -> {
             if (onExit != null) onExit.run();
         });
+        ButtonSoundHelper.addHoverSound(botones[2].getBoton(),"/audio/sfx/ping-menu-sound.mp3");
 
         for (BotonAjustable b : botones) {
             JButton btn = b.getBoton();
@@ -211,11 +216,11 @@ public class MainMenu extends JPanel implements Screen {
         });
     }
 
-	@Override
-	public void onShow() {
-		startButtonsAnimation();
-		
-	}
+    @Override
+    public void onShow() {
+        AudioManager.getInstance().playMusic("/audio/music/Cambio-Pixelado.mp3");
+        startButtonsAnimation();
+    }
 
 	@Override
 	public void onHide() {

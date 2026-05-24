@@ -1,7 +1,7 @@
 package system.Investment;
 
 import database.CompanyRepository;
-
+import system.Player;
 import tools.CompanyData;
 
 import java.util.List;
@@ -13,21 +13,29 @@ public class InvestmentModel {
     private CompanyData selectedCompany;
 
     private int accionesSeleccionadas;
+    
+
 
     public InvestmentModel() {
-
-        CompanyRepository repo =
-                new CompanyRepository();
-
-        companies =
-                repo.getAllCompanies();
-
-        if (!companies.isEmpty()) {
-
-            selectedCompany =
-                    companies.get(0);
-        }
+        CompanyRepository repo = new CompanyRepository();
+        companies = repo.getAllCompanies();
+        if (!companies.isEmpty())
+            selectedCompany = companies.get(0);
     }
+    
+    public int getMaxAccionesComprables() {
+        if (selectedCompany == null
+                || selectedCompany.getValorAccion() <= 0) return 0;
+        double dinero = Player.getInstance().getDinero();
+        int disponiblesEnMercado =
+                selectedCompany.getAccionesMercado()
+                - selectedCompany.getAccionesPropiedad();
+        int comprablesConDinero =
+                (int)(dinero / selectedCompany.getValorAccion());
+        return Math.min(disponiblesEnMercado, comprablesConDinero);
+    }
+    
+    
 
     public List<CompanyData> getCompanies() {
         return companies;

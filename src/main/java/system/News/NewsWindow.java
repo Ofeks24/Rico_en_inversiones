@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -15,6 +16,10 @@ import javax.swing.JTextArea;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 
+import tools.CompanyData;
+import tools.MarketService;
+import tools.NewsEvent;
+import tools.NewsGenerator;
 import tools.Screen;
 
 public class NewsWindow extends JPanel implements Screen {
@@ -46,11 +51,10 @@ public class NewsWindow extends JPanel implements Screen {
     		""";
 	
 	
-	public NewsWindow(int timeToUpdate) {
-		
-		toUpdate = new Timer(timeToUpdate, e ->{
-			updateInfo();
-		});
+    public NewsWindow(int timeToUpdate,
+            MarketService market,
+            NewsGenerator newsGen,
+            List<CompanyData> companies) {
 		
 		setLayout(new BorderLayout());
         setBackground(fondoPrincipal);
@@ -94,68 +98,21 @@ public class NewsWindow extends JPanel implements Screen {
 
         contenido.add(sep);
         contenido.add(Box.createVerticalStrut(25));
-        /*Timer timer = new Timer(1000, e->{
-    		System.out.println("Sigo pensando");
-    	});
-    	timer.start();
-        new Thread(() -> {
-
-            String noticia = LocalAI.generarNoticia(prompt);
-
-            SwingUtilities.invokeLater(() -> {
-
-            	System.out.println(noticia);
-
-            });
-            timer.stop();
-        }).start();*/
-
-        
-
-        // =================================================
-        // SECCIONES DEL PERIÓDICO
-        // =================================================
-        
-        contenido.add(crearSeccion(
-                "Política",
-                "El consejo imperial ha aprobado nuevas medidas para reforzar "
-                        + "el comercio marítimo entre las colonias occidentales y "
-                        + "la capital del reino. Comerciantes y nobles celebran "
-                        + "la estabilidad económica que dichas decisiones podrían generar."
-        ));
-
-        contenido.add(Box.createVerticalStrut(20));
-
-        contenido.add(crearSeccion(
-                "Economía",
-                "Las acciones de las compañías navieras continúan creciendo "
-                        + "tras las recientes rutas abiertas en el Mediterráneo. "
-                        + "Analistas aseguran que la expansión comercial podría "
-                        + "marcar una nueva era de prosperidad."
-        ));
-
-        contenido.add(Box.createVerticalStrut(20));
-
-        contenido.add(crearSeccion(
-                "Sucesos",
-                "Vecinos del distrito norte afirman haber visto luces extrañas "
-                        + "sobre el antiguo observatorio abandonado. Las autoridades "
-                        + "todavía no han emitido declaraciones oficiales."
-        ));
-
-        contenido.add(Box.createVerticalStrut(20));
-        contenido.add(crearSeccion(
-                "Cultura",
-                "El teatro real inaugurará esta semana una nueva representación "
-                        + "inspirada en las leyendas de Montecristo. La expectación "
-                        + "entre la aristocracia es enorme."
-        ));
-        for(int index=0;index<contenido.getComponentCount();index++) {
-        	System.out.println(index+": "+contenido.getComponent(index).getName());
-        }
         
 
         add(scroll, BorderLayout.CENTER);
+        publicarNoticia(market, newsGen, companies);
+    	publicarNoticia(market, newsGen, companies);
+    	publicarNoticia(market, newsGen, companies);
+    	publicarNoticia(market, newsGen, companies);
+        
+        toUpdate = new Timer(timeToUpdate, e ->{
+        	publicarNoticia(market, newsGen, companies);
+        	publicarNoticia(market, newsGen, companies);
+        	publicarNoticia(market, newsGen, companies);
+        	publicarNoticia(market, newsGen, companies);
+        });
+        toUpdate.start();
 	
 	}
 	
@@ -191,10 +148,18 @@ public class NewsWindow extends JPanel implements Screen {
 
         return seccion;
     }
-
-	private void updateInfo() {
+	
+	private void publicarNoticia(MarketService market,
+            NewsGenerator newsGen,
+            List<CompanyData> companies) {
+		NewsEvent ev = newsGen.generate(companies);
+		market.applyNews(ev, companies);
 		
-		
+		// Añadir sección al periódico
+		JPanel seccion = crearSeccion(ev.getTitulo(), ev.getCuerpo());
+		contenido.add(seccion, 4);   // insertar tras el separador
+		contenido.revalidate();
+		contenido.repaint();
 	}
 
 	@Override
