@@ -12,6 +12,9 @@ public class CompanyChartPanel extends JPanel {
     private final MarketService market;
     private int empresaId;
 
+    // Número máximo de velas visibles en pantalla
+    private static final int MAX_CANDLES = 30;
+
     // Colores
     private static final Color BG        = new Color(15, 15, 15);
     private static final Color GRID      = new Color(255, 255, 255, 18);
@@ -38,8 +41,14 @@ public class CompanyChartPanel extends JPanel {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        List<Candle> candles = market.getHistory(empresaId);
-        if (candles.isEmpty()) return;
+        List<Candle> all = market.getHistory(empresaId);
+        if (all.isEmpty()) return;
+
+        // Mostrar solo las últimas MAX_CANDLES; la más antigua desaparece
+        // automáticamente cada vez que se añade una nueva al historial.
+        List<Candle> candles = all.size() > MAX_CANDLES
+                ? all.subList(all.size() - MAX_CANDLES, all.size())
+                : all;
 
         Graphics2D g2 = (Graphics2D) g.create();
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,

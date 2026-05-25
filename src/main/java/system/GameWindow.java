@@ -49,8 +49,8 @@ public class GameWindow extends JPanel implements Screen {
     private static final Dimension SCREEN =
         Toolkit.getDefaultToolkit().getScreenSize();
     private static final int TASKBAR_H  = scale(50,  SCREEN.height, 1080);
-    private static final int WIN_W      = scale(800, SCREEN.width,  1920);
-    private static final int WIN_H      = scale(500, SCREEN.height, 1080);
+    private static final int WIN_W      = 800;//scale(900, SCREEN.width,  1920);
+    private static final int WIN_H      = 600;//scale(500, SCREEN.height, 1080);
     private static final int ICON_SIZE  = scale(75,  SCREEN.width,  1920);
     private static final int BTN_W      = scale(110, SCREEN.width,  1920);
     private static final int BTN_H      = scale(32,  SCREEN.height, 1080);
@@ -113,7 +113,7 @@ public class GameWindow extends JPanel implements Screen {
         desktopIconsLayer.add(crearIcono("Telégrafo de Montecristo",
             Utils.escalarIcono(ruta + "TelegrafoDeMontecristo(icono)(1).png", ICON_SIZE)));
         desktopIconsLayer.add(crearIcono("Stats.U",
-            Utils.escalarIcono(ruta + "Doors(Closed).png", ICON_SIZE * 2 / 3)));
+            Utils.escalarIcono(ruta + "Stats_U(icono).png", ICON_SIZE)));
         desktopIconsLayer.add(crearIcono("Tienda",
             Utils.escalarIcono(ruta + "Doors(Closed).png", ICON_SIZE * 2 / 3)));
         desktopIconsLayer.add(crearIcono("BreakRoom",
@@ -247,7 +247,7 @@ public class GameWindow extends JPanel implements Screen {
 
                     case "Stats.U" ->
                         abrirWindow(texto,
-                            Utils.escalarIcono(ruta + "Doors(Closed).png", 25),
+                            Utils.escalarIcono(ruta + "Stats_U(icono).png", 25),
                             statsPanel);
 
                     case "Tienda" ->
