@@ -13,74 +13,76 @@ import tools.ScreenManager;
 
 public class MainFrame extends JFrame {
 
-    private ScreenManager screenManager;
+    private ScreenManager       screenManager;
     private GraphBackgroundPanel background;
-    private JLayeredPane layeredPane;
-    private Clock time = new Clock();
+    private JLayeredPane        layeredPane;
+    private Clock               time = new Clock();
+
+    // Resolución real de la pantalla
+    public static final Dimension SCREEN =
+        Toolkit.getDefaultToolkit().getScreenSize();
 
     public MainFrame() {
 
         screenManager = new ScreenManager();
-        background = new GraphBackgroundPanel();
-        layeredPane = new JLayeredPane();
+        background    = new GraphBackgroundPanel();
+        layeredPane   = new JLayeredPane();
 
         setUndecorated(true);
 
         initLayout();
         initScreens();
         initAnimation();
-        
+
         setTitle("Rico en inversiones");
-        setSize(1280, 720); // o pack()
+        // Tamaño inicial = 2/3 de la pantalla; arranca maximizado de todos modos
+        setSize((int)(SCREEN.width * 0.85), (int)(SCREEN.height * 0.85));
         setLocationRelativeTo(null);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
     }
 
     private void initLayout() {
 
-        // Usamos tamaño del frame (puedes hacerlo dinámico si quieres)
-    	Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        background.setBounds(0, 0, SCREEN.width, SCREEN.height);
 
-    	background.setBounds(0, 0, screenSize.width, screenSize.height);
+        JPanel screens = screenManager.getContainer();
+        screens.setBounds(0, 0, SCREEN.width, SCREEN.height);
+        screens.setOpaque(false);
 
-    	JPanel screens = screenManager.getContainer();
-    	screens.setBounds(0, 0, screenSize.width, screenSize.height);
-    	screens.setOpaque(false);
-
-        // Añadir capas
         layeredPane.add(background, JLayeredPane.DEFAULT_LAYER);
-        layeredPane.add(screens, JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(screens,    JLayeredPane.PALETTE_LAYER);
 
         setContentPane(layeredPane);
     }
 
     private void initScreens() {
 
-        GameWindow game = new GameWindow(() ->
-                screenManager.showScreen("MENU"),time
+        GameWindow game = new GameWindow(
+            () -> screenManager.showScreen("MENU"), time
         );
 
         MainMenu menu = new MainMenu(
-                () -> screenManager.showScreen("GAME"),
-                () -> screenManager.showScreen("OPTIONS"),
-                () -> System.exit(0)
+            () -> screenManager.showScreen("GAME"),
+            () -> screenManager.showScreen("OPTIONS"),
+            () -> System.exit(0)
         );
 
-        OptionsWindow options = new OptionsWindow(() ->
-                screenManager.showScreen("MENU")
+        OptionsWindow options = new OptionsWindow(
+            () -> screenManager.showScreen("MENU"),
+            () -> game.getStatsController().reset(),
+            time
         );
 
-        LoadingScreen loading = new LoadingScreen(() ->
-                screenManager.showScreen("MENU")
+        LoadingScreen loading = new LoadingScreen(
+            () -> screenManager.showScreen("MENU")
         );
 
-        // 👇 IMPORTANTE: transparencias
         menu.setOpaque(false);
         options.setOpaque(false);
 
         screenManager.addScreen("LOADING", loading);
-        screenManager.addScreen("MENU", menu);
-        screenManager.addScreen("GAME", game);
+        screenManager.addScreen("MENU",    menu);
+        screenManager.addScreen("GAME",    game);
         screenManager.addScreen("OPTIONS", options);
 
         screenManager.showScreen("LOADING");
@@ -88,11 +90,7 @@ public class MainFrame extends JFrame {
     }
 
     private void initAnimation() {
-
-        Timer graphTimer = new Timer(16, e -> {
-            repaint();
-        });
-
+        Timer graphTimer = new Timer(16, e -> repaint());
         graphTimer.start();
     }
 }

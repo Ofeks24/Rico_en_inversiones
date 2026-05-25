@@ -16,14 +16,13 @@ public class StatsModel {
     public StatsModel(MarketService market) {
         this.market = market;
 
-        // Cargar posiciones persistidas en BD
         repo.getAllCompanies().forEach(c -> {
             if (c.getAccionesPropiedad() > 0) {
                 portfolio.add(new PortfolioEntry(
                     c.getId(),
                     c.getNombre(),
                     c.getAccionesPropiedad(),
-                    c.getValorAccion(),   // precio de compra histórico
+                    c.getValorAccion(),
                     market
                 ));
             }
@@ -65,13 +64,24 @@ public class StatsModel {
     public double getTotalValue() {
         double total = 0;
         for (PortfolioEntry p : portfolio)
-            total += p.getValorTotal();   // precio en tiempo real
+            total += p.getValorTotal();
         return total;
+    }
+
+    /** Devuelve las acciones poseídas de una empresa (0 si no está en cartera). */
+    public int getOwnedShares(int empresaId) {
+        PortfolioEntry e = findEntry(empresaId);
+        return (e == null) ? 0 : e.getAcciones();
     }
 
     private PortfolioEntry findEntry(int empresaId) {
         for (PortfolioEntry p : portfolio)
             if (p.getEmpresaId() == empresaId) return p;
         return null;
+    }
+
+    public void clearPortfolio() {
+        repo.getAllCompanies().forEach(c -> c.setAccionesPropiedad(0));
+        portfolio.clear();
     }
 }

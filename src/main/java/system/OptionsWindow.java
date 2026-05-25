@@ -13,11 +13,15 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JSeparator;
+import javax.swing.SwingUtilities;
 
+import database.CompanyRepository;
 import tools.AudioManager;
+import tools.Clock;
 import tools.RoundedPanel;
 import tools.Screen;
 
@@ -25,31 +29,43 @@ public class OptionsWindow extends JPanel implements Screen {
 
     private Runnable onBack;
 
+    // Valores de partida nueva
+    private static final double DINERO_INICIAL  = 100.0;
+    private static final int    ANYO_INICIAL    = 1996;
+    private static final int    MES_INICIAL     = 6;
+    private static final int    DIA_INICIAL     = 1;
+    private static final int    HORA_INICIAL    = 8;
+    private static final int    MINUTO_INICIAL  = 0;
+
     // Fuentes y colores
     private static final Font  TITLE_FONT   = new Font("Segoe UI", Font.BOLD,  28);
     private static final Font  SECTION_FONT = new Font("Segoe UI", Font.BOLD,  18);
     private static final Font  NORMAL_FONT  = new Font("Segoe UI", Font.PLAIN, 17);
     private static final Color TEXT_COLOR   = new Color(220, 220, 220);
     private static final Color ACCENT       = new Color(52, 120, 246);
+    private static final Color DANGER       = new Color(200, 50, 50);
 
-    public OptionsWindow(Runnable onBack) {
+    /**
+     * @param onBack   Acción al pulsar "Volver".
+     * @param clock    Reloj del juego (necesario para guardar fecha/hora
+     *                 y para resetearla al borrar datos).
+     */
+    public OptionsWindow(Runnable onBack, Runnable onReset, Clock clock) {
         setOpaque(false);
         this.onBack = onBack;
         setLayout(new GridBagLayout());
 
         RoundedPanel overlay = new RoundedPanel(30);
         overlay.setLayout(new BorderLayout());
-        
         overlay.setPreferredSize(calcularTamanoOverlay());
 
-	     // Redimensionar cuando cambie la ventana
-	     addComponentListener(new java.awt.event.ComponentAdapter() {
-	         @Override
-	         public void componentResized(java.awt.event.ComponentEvent e) {
-	             overlay.setPreferredSize(calcularTamanoOverlay());
-	             revalidate();
-	         }
-	     });
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                overlay.setPreferredSize(calcularTamanoOverlay());
+                revalidate();
+            }
+        });
 
         // ── Título ────────────────────────────────────────
         JLabel titulo = new JLabel("Opciones", JLabel.CENTER);
@@ -68,13 +84,11 @@ public class OptionsWindow extends JPanel implements Screen {
         centro.add(crearSeparador("MÚSICA"));
         centro.add(Box.createVerticalStrut(10));
 
-        // Checkbox activar música
         JCheckBox musicCheck = crearCheckbox("Música activada",
                 AudioManager.getInstance().isMusicEnabled());
         centro.add(musicCheck);
         centro.add(Box.createVerticalStrut(8));
 
-        // Slider volumen música
         JPanel musicVolPanel = crearSliderPanel(
                 "Volumen música",
                 (int)(AudioManager.getInstance().getMusicVolume() * 100)
@@ -88,13 +102,11 @@ public class OptionsWindow extends JPanel implements Screen {
         centro.add(crearSeparador("EFECTOS DE SONIDO"));
         centro.add(Box.createVerticalStrut(10));
 
-        // Checkbox activar efectos
         JCheckBox sfxCheck = crearCheckbox("Efectos activados",
                 AudioManager.getInstance().isSfxEnabled());
         centro.add(sfxCheck);
         centro.add(Box.createVerticalStrut(8));
 
-        // Slider volumen efectos
         JPanel sfxVolPanel = crearSliderPanel(
                 "Volumen efectos",
                 (int)(AudioManager.getInstance().getSfxVolume() * 100)
@@ -102,10 +114,30 @@ public class OptionsWindow extends JPanel implements Screen {
         JSlider sfxSlider = (JSlider) ((JPanel) sfxVolPanel
                 .getComponent(1)).getComponent(0);
         centro.add(sfxVolPanel);
+        centro.add(Box.createVerticalStrut(16));
+
+        // ── Sección DATOS ─────────────────────────────────
+        centro.add(crearSeparador("DATOS DE PARTIDA"));
+        centro.add(Box.createVerticalStrut(10));
+
+        JButton guardarBtn = crearBotonAccion(
+                "Guardar partida ahora", ACCENT);
+        guardarBtn.addActionListener(e ->
+            guardarPartidaActual(clock)
+        );
+        centro.add(guardarBtn);
+        centro.add(Box.createVerticalStrut(10));
+
+        JButton resetBtn = crearBotonAccion(
+                "Borrar todos los datos", DANGER);
+        resetBtn.addActionListener(e ->
+            confirmarYResetear(clock)
+        );
+        centro.add(resetBtn);
 
         overlay.add(centro, BorderLayout.CENTER);
 
-        // ── Listeners ─────────────────────────────────────
+        // ── Listeners audio ───────────────────────────────
         musicCheck.addActionListener(e -> {
             AudioManager.getInstance()
                     .setMusicEnabled(musicCheck.isSelected());
@@ -128,7 +160,6 @@ public class OptionsWindow extends JPanel implements Screen {
                     .setSfxVolume(sfxSlider.getValue() / 100f)
         );
 
-        // Estado inicial de los sliders
         musicSlider.setEnabled(AudioManager.getInstance().isMusicEnabled());
         sfxSlider.setEnabled(AudioManager.getInstance().isSfxEnabled());
 
@@ -154,10 +185,67 @@ public class OptionsWindow extends JPanel implements Screen {
     }
 
     // =========================================================
-    // HELPERS
+    // LÓGICA DE GUARDADO Y RESET
     // =========================================================
 
-    /** Línea separadora con etiqueta de sección */
+    /** Persiste el estado actual del jugador (dinero + fecha + hora). */
+    private void guardarPartidaActual(Clock clock) {
+        double dinero = Player.getInstance().getDinero();
+        new CompanyRepository().guardarPartida(dinero, clock);
+
+        JOptionPane.showMessageDialog(
+            SwingUtilities.getWindowAncestor(this),
+            "Partida guardada correctamente.",
+            "Guardado",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    /**
+     * Muestra un diálogo de confirmación y, si el usuario acepta,
+     * borra todas las Stats, resetea dinero y fecha en BD,
+     * reinicia el singleton de Player y restaura el reloj.
+     */
+    private void confirmarYResetear(Clock clock) {
+        int respuesta = JOptionPane.showConfirmDialog(
+            SwingUtilities.getWindowAncestor(this),
+            "¿Seguro que quieres borrar todos los datos?\n"
+                + "Se perderán todas las acciones y el progreso.",
+            "Borrar datos",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+
+        if (respuesta != JOptionPane.YES_OPTION) return;
+
+        // 1. Persistir el reset en BD
+        new CompanyRepository().resetearPartida(
+            DINERO_INICIAL,
+            ANYO_INICIAL, MES_INICIAL, DIA_INICIAL,
+            HORA_INICIAL, MINUTO_INICIAL
+        );
+        
+
+        // 2. Reiniciar el singleton de Player para que lea el nuevo dinero
+        Player.reset(DINERO_INICIAL);
+
+        // 3. Restaurar el reloj en memoria
+        clock.setHour(HORA_INICIAL);
+        clock.setMinute(MINUTO_INICIAL);
+        clock.setDate(new tools.Date(DIA_INICIAL, MES_INICIAL, ANYO_INICIAL));
+
+        JOptionPane.showMessageDialog(
+            SwingUtilities.getWindowAncestor(this),
+            "Datos borrados. La partida ha vuelto al estado inicial.",
+            "Datos borrados",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    // =========================================================
+    // HELPERS UI
+    // =========================================================
+
     private JPanel crearSeparador(String texto) {
         JPanel p = new JPanel(new BorderLayout(8, 0));
         p.setOpaque(false);
@@ -175,7 +263,6 @@ public class OptionsWindow extends JPanel implements Screen {
         return p;
     }
 
-    /** Checkbox con estilo */
     private JCheckBox crearCheckbox(String texto, boolean selected) {
         JCheckBox cb = new JCheckBox(texto, selected);
         cb.setFont(NORMAL_FONT);
@@ -185,11 +272,6 @@ public class OptionsWindow extends JPanel implements Screen {
         return cb;
     }
 
-    /**
-     * Panel fila: label a la izquierda, slider a la derecha.
-     * El slider está envuelto en un JPanel para poder extraerlo
-     * con getComponent(1).getComponent(0).
-     */
     private JPanel crearSliderPanel(String etiqueta, int valorInicial) {
         JPanel fila = new JPanel(new BorderLayout(10, 0));
         fila.setOpaque(false);
@@ -207,12 +289,10 @@ public class OptionsWindow extends JPanel implements Screen {
         slider.setPaintLabels(false);
         slider.setForeground(ACCENT);
 
-        // Envolver en panel para acceso por índice
         JPanel sliderWrapper = new JPanel(new BorderLayout());
         sliderWrapper.setOpaque(false);
         sliderWrapper.add(slider, BorderLayout.CENTER);
 
-        // Label de porcentaje
         JLabel pctLabel = new JLabel(valorInicial + "%");
         pctLabel.setFont(NORMAL_FONT);
         pctLabel.setForeground(TEXT_COLOR);
@@ -223,25 +303,34 @@ public class OptionsWindow extends JPanel implements Screen {
             pctLabel.setText(slider.getValue() + "%")
         );
 
-        fila.add(lbl,          BorderLayout.WEST);
+        fila.add(lbl,           BorderLayout.WEST);
         fila.add(sliderWrapper, BorderLayout.CENTER);
-        fila.add(pctLabel,     BorderLayout.EAST);
+        fila.add(pctLabel,      BorderLayout.EAST);
 
         return fila;
     }
-    
-    private Dimension calcularTamanoOverlay() {
 
-        int ancho = (int) (getWidth() * 0.55);
+    /** Botón de acción genérico con color personalizado */
+    private JButton crearBotonAccion(String texto, Color color) {
+        JButton b = new JButton(texto);
+        b.setFont(NORMAL_FONT);
+        b.setFocusPainted(false);
+        b.setBackground(color);
+        b.setForeground(Color.WHITE);
+        b.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        b.setAlignmentX(Component.LEFT_ALIGNMENT);
+        b.setMaximumSize(new Dimension(Integer.MAX_VALUE, 38));
+        return b;
+    }
+
+    private Dimension calcularTamanoOverlay() {
+        int ancho = (int) (getWidth()  * 0.55);
         int alto  = (int) (getHeight() * 0.75);
 
-        // Tamaños mínimos
         ancho = Math.max(ancho, 420);
-        alto  = Math.max(alto, 420);
-
-        // Tamaños máximos opcionales
+        alto  = Math.max(alto,  480);   // un poco más alto por la nueva sección
         ancho = Math.min(ancho, 800);
-        alto  = Math.min(alto, 700);
+        alto  = Math.min(alto,  780);
 
         return new Dimension(ancho, alto);
     }

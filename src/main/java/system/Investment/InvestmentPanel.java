@@ -1,4 +1,3 @@
-
 package system.Investment;
 
 import java.awt.BorderLayout;
@@ -9,6 +8,7 @@ import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -38,17 +38,22 @@ public class InvestmentPanel extends JPanel {
     private static final Color BUY    = new Color(0, 160, 80);
     private static final Color SELL   = new Color(200, 50, 50);
 
-    // ── Fuentes ───────────────────────────────────────────
-    private static final java.awt.Font TITLE_FONT =
-            new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 22);
-    private static final java.awt.Font SUBTITLE_FONT =
-            new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 16);
-    private static final java.awt.Font NORMAL_FONT =
-            new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, 14);
-    private static final java.awt.Font BUTTON_FONT =
-            new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 14);
-    private static final java.awt.Font LABEL_SMALL =
-            new java.awt.Font("Segoe UI", java.awt.Font.BOLD, 12);
+    // ── Fuentes escaladas a resolución ────────────────────
+    private static final java.awt.Font TITLE_FONT;
+    private static final java.awt.Font SUBTITLE_FONT;
+    private static final java.awt.Font NORMAL_FONT;
+    private static final java.awt.Font BUTTON_FONT;
+    private static final java.awt.Font LABEL_SMALL;
+
+    static {
+        int sw = Toolkit.getDefaultToolkit().getScreenSize().width;
+        float scale = sw / 1920f;
+        TITLE_FONT    = new java.awt.Font("Segoe UI", java.awt.Font.BOLD,  Math.round(22 * scale));
+        SUBTITLE_FONT = new java.awt.Font("Segoe UI", java.awt.Font.BOLD,  Math.round(16 * scale));
+        NORMAL_FONT   = new java.awt.Font("Segoe UI", java.awt.Font.PLAIN, Math.round(14 * scale));
+        BUTTON_FONT   = new java.awt.Font("Segoe UI", java.awt.Font.BOLD,  Math.round(14 * scale));
+        LABEL_SMALL   = new java.awt.Font("Segoe UI", java.awt.Font.BOLD,  Math.round(12 * scale));
+    }
 
     // ── Componentes dinámicos ─────────────────────────────
     private JComboBox<CompanyData> companyDropdown;
@@ -61,15 +66,13 @@ public class InvestmentPanel extends JPanel {
     private JLabel accionesPropiedadLabel;
     private JLabel valorAccionLabel;
 
-    // Slider COMPRAR
-    private JSlider  buySlider;
+    private JSlider    buySlider;
     private JTextField buyField;
-    private JLabel   buyTotalLabel;
+    private JLabel     buyTotalLabel;
 
-    // Slider VENDER
-    private JSlider  sellSlider;
+    private JSlider    sellSlider;
     private JTextField sellField;
-    private JLabel   sellTotalLabel;
+    private JLabel     sellTotalLabel;
 
     private JButton comprarButton;
     private JButton venderButton;
@@ -83,7 +86,7 @@ public class InvestmentPanel extends JPanel {
         setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
         setBackground(BG);
 
-        add(crearBarraSuperior(),                   BorderLayout.NORTH);
+        add(crearBarraSuperior(),                    BorderLayout.NORTH);
         add(crearContenido(market, empresaIdInicial), BorderLayout.CENTER);
     }
 
@@ -97,7 +100,7 @@ public class InvestmentPanel extends JPanel {
 
         companyDropdown = new JComboBox<>();
         companyDropdown.setFont(NORMAL_FONT);
-        companyDropdown.setPreferredSize(new Dimension(250, 35));
+        companyDropdown.setPreferredSize(scaled(250, 35));
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT));
         left.setOpaque(false);
@@ -109,13 +112,14 @@ public class InvestmentPanel extends JPanel {
 
     // =====================================================
     // CONTENIDO PRINCIPAL
+    // División vertical:
+    //   80% gráfica + panel derecho  |  20% sliders (altura)
+    // División horizontal:
+    //   72% izquierda               |  28% panel derecho
     // =====================================================
 
     private JPanel crearContenido(MarketService market, int empresaIdInicial) {
 
-        // Layout proporcional manual:
-        //   izquierda 72% | derecha 28%
-        //   gráfica   65% | barras  35%
         JPanel root = new JPanel(null) {
             @Override
             public void doLayout() {
@@ -123,19 +127,20 @@ public class InvestmentPanel extends JPanel {
                 int w = getWidth(), h = getHeight();
                 if (w == 0 || h == 0) return;
 
-                int gap        = 8;
-                int derechaW   = (int)(w * 0.28);
-                int izquierdaW = w - derechaW - gap * 3;
+                int gap      = 8;
+                int derechaW = (int)(w * 0.28);
+                int izqW     = w - derechaW - gap * 3;
 
-                int graficaH = (int)(h * 0.62);
-                int barrasH  = h - graficaH - gap * 3;
+                // Sliders: 20% de la altura total del panel
+                int slidersH = (int)(h * 0.20);
+                int topH     = h - slidersH - gap * 3;
 
-                // comp 0 → gráfica
-                getComponent(0).setBounds(gap, gap, izquierdaW, graficaH);
-                // comp 1 → panel de sliders
-                getComponent(1).setBounds(gap, gap + graficaH + gap, izquierdaW, barrasH);
-                // comp 2 → panel derecho
-                getComponent(2).setBounds(gap + izquierdaW + gap, gap, derechaW, h - gap * 2);
+                // comp 0 → gráfica (arriba-izquierda)
+                getComponent(0).setBounds(gap, gap, izqW, topH);
+                // comp 1 → panel de sliders (abajo-izquierda)
+                getComponent(1).setBounds(gap, gap + topH + gap, izqW, slidersH);
+                // comp 2 → panel derecho (ocupa toda la altura)
+                getComponent(2).setBounds(gap + izqW + gap, gap, derechaW, h - gap * 2);
             }
         };
         root.setBackground(BG);
@@ -149,13 +154,13 @@ public class InvestmentPanel extends JPanel {
         ));
         chart = new CompanyChartPanel(market, empresaIdInicial);
         grafica.add(chart, BorderLayout.CENTER);
-        root.add(grafica);  // índice 0
+        root.add(grafica);           // índice 0
 
         // ── Panel de sliders (índice 1) ───────────────────
-        root.add(crearPanelSliders());  // índice 1
+        root.add(crearPanelSliders());   // índice 1
 
-        // ── Panel derecho — info empresa (índice 2) ───────
-        root.add(crearPanelDerecho());  // índice 2
+        // ── Panel derecho (índice 2) ──────────────────────
+        root.add(crearPanelDerecho());   // índice 2
 
         return root;
     }
@@ -165,32 +170,13 @@ public class InvestmentPanel extends JPanel {
     // =====================================================
 
     private JPanel crearPanelSliders() {
-
         JPanel contenedor = new JPanel(new BorderLayout(8, 0));
         contenedor.setBackground(BG);
-
-        // ── Fila COMPRAR ──────────────────────────────────
-        JPanel filaBuy = crearFilaSlider(
-            "COMPRAR", BUY,
-            true  // es la fila de compra
-        );
-
-        // ── Fila VENDER ───────────────────────────────────
-        JPanel filaSell = crearFilaSlider(
-            "VENDER", SELL,
-            false
-        );
-
-        contenedor.add(filaBuy,  BorderLayout.NORTH);
-        contenedor.add(filaSell, BorderLayout.SOUTH);
-
+        contenedor.add(crearFilaSlider("COMPRAR", BUY,  true),  BorderLayout.NORTH);
+        contenedor.add(crearFilaSlider("VENDER",  SELL, false), BorderLayout.SOUTH);
         return contenedor;
     }
 
-    /**
-     * Crea una fila completa con:
-     *   [etiqueta] [slider] [campo numérico] [label coste/ingreso]
-     */
     private JPanel crearFilaSlider(String etiqueta, Color color, boolean esBuy) {
 
         JPanel fila = new JPanel(new BorderLayout(6, 0));
@@ -200,16 +186,13 @@ public class InvestmentPanel extends JPanel {
             BorderFactory.createEmptyBorder(6, 10, 6, 10)
         ));
 
-        // Etiqueta lateral con color
         JLabel lbl = new JLabel(etiqueta);
         lbl.setFont(LABEL_SMALL);
         lbl.setForeground(color);
-        lbl.setPreferredSize(new Dimension(68, 20));
+        lbl.setPreferredSize(scaled(68, 20));
 
-        // Slider con thumb de color
         JSlider slider = crearSlider(color);
 
-        // Campo numérico
         JTextField field = new JTextField("0");
         field.setFont(SUBTITLE_FONT);
         field.setHorizontalAlignment(JTextField.CENTER);
@@ -218,28 +201,18 @@ public class InvestmentPanel extends JPanel {
             BorderFactory.createLineBorder(new Color(200, 200, 200)),
             BorderFactory.createEmptyBorder(4, 6, 4, 6)
         ));
-        field.setMaximumSize(new Dimension(80, 28));
-        field.setPreferredSize(new Dimension(80, 28));
+        field.setMaximumSize(scaled(80, 28));
+        field.setPreferredSize(scaled(80, 28));
 
-        // Label de coste/ingreso
         JLabel totalLabel = new JLabel(esBuy ? "Coste: ₲0" : "Ingreso: ₲0");
         totalLabel.setFont(LABEL_SMALL);
         totalLabel.setForeground(color);
         totalLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        totalLabel.setPreferredSize(new Dimension(130, 20));
+        totalLabel.setPreferredSize(scaled(130, 20));
 
-        // Guardar referencias
-        if (esBuy) {
-            buySlider     = slider;
-            buyField      = field;
-            buyTotalLabel = totalLabel;
-        } else {
-            sellSlider     = slider;
-            sellField      = field;
-            sellTotalLabel = totalLabel;
-        }
+        if (esBuy) { buySlider  = slider; buyField  = field; buyTotalLabel  = totalLabel; }
+        else        { sellSlider = slider; sellField = field; sellTotalLabel = totalLabel; }
 
-        // Panel central: slider + campo
         JPanel centro = new JPanel(new BorderLayout(6, 0));
         centro.setOpaque(false);
         centro.add(slider, BorderLayout.CENTER);
@@ -252,7 +225,6 @@ public class InvestmentPanel extends JPanel {
         return fila;
     }
 
-    /** Slider con thumb personalizado del color dado */
     private JSlider crearSlider(Color color) {
         JSlider s = new JSlider(0, 100, 0);
         s.setBackground(CARD);
@@ -266,13 +238,8 @@ public class InvestmentPanel extends JPanel {
                 Graphics2D g2 = (Graphics2D) g.create();
                 Rectangle r = thumbRect;
                 g2.setColor(color);
-                g2.fillRoundRect(
-                    r.x + r.width / 2 - 4,
-                    r.y + 2,
-                    8,
-                    r.height - 4,
-                    4, 4
-                );
+                g2.fillRoundRect(r.x + r.width / 2 - 4, r.y + 2,
+                                 8, r.height - 4, 4, 4);
                 g2.dispose();
             }
         });
@@ -337,6 +304,13 @@ public class InvestmentPanel extends JPanel {
     // HELPERS
     // =====================================================
 
+    /** Escala una dimensión de referencia (diseñada a 1920px) a la pantalla actual. */
+    private static Dimension scaled(int w, int h) {
+        int sw = Toolkit.getDefaultToolkit().getScreenSize().width;
+        float s = sw / 1920f;
+        return new Dimension(Math.round(w * s), Math.round(h * s));
+    }
+
     private JLabel crearLabel(String txt) {
         JLabel l = new JLabel(txt);
         l.setForeground(TEXT);
@@ -388,7 +362,7 @@ public class InvestmentPanel extends JPanel {
 
         JScrollPane scroll = new JScrollPane(area);
         scroll.setBorder(null);
-        scroll.setPreferredSize(new Dimension(0, 80));
+        scroll.setPreferredSize(scaled(0, 80));
         scroll.setVisible(false);
 
         cabecera.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -453,48 +427,28 @@ public class InvestmentPanel extends JPanel {
     }
 
     // ── Comprar ───────────────────────────────────────────
-    public void setBuyMax(int max) {
-        buySlider.setMaximum(Math.max(0, max));
-    }
-
-    public void setBuyValue(int v) {
-        buySlider.setValue(v);
-        buyField.setText(String.valueOf(v));
-    }
-
-    public void setBuyCost(double cost) {
-        buyTotalLabel.setText(String.format("Coste: ₲%.2f", cost));
-    }
+    public void setBuyMax(int max)       { buySlider.setMaximum(Math.max(0, max)); }
+    public void setBuyValue(int v)       { buySlider.setValue(v); buyField.setText(String.valueOf(v)); }
+    public void setBuyCost(double cost)  { buyTotalLabel.setText(String.format("Coste: ₲%.2f", cost)); }
 
     // ── Vender ───────────────────────────────────────────
-    public void setSellMax(int max) {
-        sellSlider.setMaximum(Math.max(0, max));
-    }
-
-    public void setSellValue(int v) {
-        sellSlider.setValue(v);
-        sellField.setText(String.valueOf(v));
-    }
-
-    public void setSellIncome(double income) {
-        sellTotalLabel.setText(String.format("Ingreso: ₲%.2f", income));
-    }
+    public void setSellMax(int max)         { sellSlider.setMaximum(Math.max(0, max)); }
+    public void setSellValue(int v)         { sellSlider.setValue(v); sellField.setText(String.valueOf(v)); }
+    public void setSellIncome(double income){ sellTotalLabel.setText(String.format("Ingreso: ₲%.2f", income)); }
 
     // ── Getters de componentes ────────────────────────────
     public JComboBox<CompanyData> getCompanyDropdown() { return companyDropdown; }
-    public JSlider  getBuySlider()    { return buySlider;  }
-    public JSlider  getSellSlider()   { return sellSlider; }
-    public JTextField getBuyField()   { return buyField;   }
-    public JTextField getSellField()  { return sellField;  }
-    public JButton  getComprarButton(){ return comprarButton; }
-    public JButton  getVenderButton() { return venderButton;  }
+    public JSlider    getBuySlider()    { return buySlider;  }
+    public JSlider    getSellSlider()   { return sellSlider; }
+    public JTextField getBuyField()     { return buyField;   }
+    public JTextField getSellField()    { return sellField;  }
+    public JButton    getComprarButton(){ return comprarButton; }
+    public JButton    getVenderButton() { return venderButton;  }
 
     public void setChartEmpresa(int id) { chart.setEmpresaId(id); }
 
-    // Compat — el controller viejo usaba getSlider() y getAccionesField()
-    // Se mantienen apuntando al slider de compra para no romper nada
     /** @deprecated Usar getBuySlider() */
-    public JSlider    getSlider()       { return buySlider; }
+    public JSlider    getSlider()        { return buySlider; }
     /** @deprecated Usar getBuyField() */
-    public JTextField getAccionesField(){ return buyField;  }
+    public JTextField getAccionesField() { return buyField;  }
 }

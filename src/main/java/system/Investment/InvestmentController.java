@@ -1,8 +1,8 @@
-
 package system.Investment;
 
 import javax.swing.SwingUtilities;
 
+import system.Player;
 import system.Stats.StatsController;
 import tools.AudioManager;
 import tools.CompanyData;
@@ -15,7 +15,6 @@ public class InvestmentController {
     private final StatsController  statsController;
     private final MarketService    market;
 
-    // Cantidad seleccionada en cada slider (independientes)
     private int accionesComprar = 0;
     private int accionesVender  = 0;
 
@@ -74,15 +73,11 @@ public class InvestmentController {
         view.getComprarButton().addActionListener(e -> buyShares());
         view.getVenderButton() .addActionListener(e -> sellShares());
 
-        // ── Listener de mercado (precio en tiempo real) ───
+        // ── Listener de mercado ───────────────────────────
         market.addListener(() -> SwingUtilities.invokeLater(() -> {
             CompanyData c = model.getSelectedCompany();
             if (c == null) return;
-
-            // Actualizar labels de precio y disponibles
             view.updateMarketInfo(c);
-
-            // Recalcular máximo de compra (precio cambió → dinero alcanza diferente cantidad)
             int nuevoMaxBuy = model.getMaxAccionesComprables();
             view.setBuyMax(nuevoMaxBuy);
             if (accionesComprar > nuevoMaxBuy) {
@@ -90,10 +85,32 @@ public class InvestmentController {
                 view.setBuyValue(accionesComprar);
             }
             view.setBuyCost(calcBuyCost());
-
-            // El máximo de venta no cambia (depende de acciones propias, no del precio)
             view.setSellIncome(calcSellIncome());
         }));
+
+        // ── Escuchar cambios de StatsController (incluye reset) ───
+        statsController.addOnChangeListener(() ->
+            SwingUtilities.invokeLater(this::onExternalChange)
+        );
+    }
+
+    // =====================================================
+    // REACCIÓN A CAMBIOS EXTERNOS (reset, etc.)
+    // =====================================================
+
+    private void onExternalChange() {
+        // Recargar el estado real de la empresa seleccionada desde el modelo
+        CompanyData c = model.getSelectedCompany();
+        if (c == null) return;
+
+        // Sincronizar accionesPropiedad desde el portfolio del StatsModel
+        // El modelo de inversión mantiene su propia lista; actualizamos el campo
+        int owned = statsController.getOwnedShares(c.getId());
+        c.setAccionesPropiedad(owned);
+
+        accionesComprar = 0;
+        accionesVender  = 0;
+        updateView();
     }
 
     // =====================================================
@@ -106,14 +123,12 @@ public class InvestmentController {
 
         view.setCompanyInfo(c);
 
-        // Máximos de cada slider
         int maxBuy  = model.getMaxAccionesComprables();
         int maxSell = c.getAccionesPropiedad();
 
         view.setBuyMax(maxBuy);
         view.setSellMax(maxSell);
 
-        // Resetear valores
         view.setBuyValue(0);
         view.setSellValue(0);
         accionesComprar = 0;
@@ -157,75 +172,73 @@ public class InvestmentController {
 
     private double calcBuyCost() {
         CompanyData c = model.getSelectedCompany();
-        if (c == null) return 0;
-        return accionesComprar * c.getValorAccion();
+        return (c == null) ? 0 : accionesComprar * c.getValorAccion();
     }
 
     private double calcSellIncome() {
         CompanyData c = model.getSelectedCompany();
-        if (c == null) return 0;
-        return accionesVender * c.getValorAccion();
+        return (c == null) ? 0 : accionesVender * c.getValorAccion();
     }
 
     // =====================================================
-    // COMPRAR
+    // COMPRAR  — usa trade() unificado
     // =====================================================
 
     private void buyShares() {
         CompanyData c = model.getSelectedCompany();
         if (c == null || accionesComprar <= 0) return;
 
-        statsController.buyShares(
+        // trade() se encarga de descontar dinero + actualizar portfolio + refresh
+        statsController.trade(
             c.getId(), c.getNombre(),
-            accionesComprar, c.getValorAccion()
+            accionesComprar,          // positivo → compra
+            c.getValorAccion()
         );
 
-        // Actualizar estado local de la empresa
         c.setAccionesPropiedad(c.getAccionesPropiedad() + accionesComprar);
         view.refreshOwnership(c);
-
-        // El máximo de venta crece
         view.setSellMax(c.getAccionesPropiedad());
 
-        // Resetear slider de compra
         accionesComprar = 0;
         view.setBuyMax(model.getMaxAccionesComprables());
         view.setBuyValue(0);
         view.setBuyCost(0);
 
-        AudioManager.getInstance().playSfx("/main/resources/audio/sfx/cash-register-sound-efect.wav");
+        AudioManager.getInstance().playSfx(
+            "/main/resources/audio/sfx/cash-register-sound-efect.wav");
     }
 
     // =====================================================
-    // VENDER
+    // VENDER  — usa trade() unificado
     // =====================================================
 
     private void sellShares() {
         CompanyData c = model.getSelectedCompany();
         if (c == null || accionesVender <= 0) {
-            AudioManager.getInstance().playSfx("/main/resources/audio/sfx/wrong-beep.wav");
+            AudioManager.getInstance().playSfx(
+                "/main/resources/audio/sfx/wrong-beep.wav");
             return;
         }
 
-        statsController.sellShares(
-            c.getId(), accionesVender, c.getValorAccion()
+        // trade() con cantidad negativa → venta
+        statsController.trade(
+            c.getId(), null,
+            -accionesVender,
+            c.getValorAccion()
         );
 
-        // Actualizar estado local de la empresa
         c.setAccionesPropiedad(
-            Math.max(0, c.getAccionesPropiedad() - accionesVender)
-        );
+            Math.max(0, c.getAccionesPropiedad() - accionesVender));
         view.refreshOwnership(c);
 
-        // El máximo de venta decrece; el de compra puede subir (más dinero)
         view.setSellMax(c.getAccionesPropiedad());
         view.setBuyMax(model.getMaxAccionesComprables());
 
-        // Resetear slider de venta
         accionesVender = 0;
         view.setSellValue(0);
         view.setSellIncome(0);
 
-        AudioManager.getInstance().playSfx("/main/resources/audio/sfx/cash-register-sound-efect.wav");
+        AudioManager.getInstance().playSfx(
+            "/main/resources/audio/sfx/cash-register-sound-efect.wav");
     }
 }

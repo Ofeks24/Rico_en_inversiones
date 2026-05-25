@@ -35,4 +35,14 @@ public class Player {
         dinero += cantidad;
         new CompanyRepository().guardarDinero(dinero);
     }
+
+    /**
+     * Reinicia el singleton con un nuevo dinero inicial.
+     * Útil tras un reset de partida para que todos los componentes
+     * que llamen a getInstance() obtengan el valor correcto.
+     */
+    public static void reset(double dineroInicial) {
+        instance = new Player(dineroInicial);
+    }
+
 }

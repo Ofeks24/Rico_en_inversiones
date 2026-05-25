@@ -1,5 +1,6 @@
 package database;
 
+import tools.Clock;
 import tools.CompanyData;
 import tools.Sector;
 
@@ -154,6 +155,83 @@ public class CompanyRepository {
         ) {
             ps.setInt(1, empresaId);
             ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Guarda el estado completo de la partida: dinero + fecha + hora.
+     * Equivale a un "guardado rápido" que puede llamarse en cualquier momento.
+     */
+    public void guardarPartida(double dinero, Clock clock) {
+        String sql =
+            "UPDATE Partidas_guardadas "
+          + "SET dinero = ?, anyo = ?, mes = ?, dia = ?, "
+          + "    hora = ?, minuto = ? "
+          + "WHERE usuario_id = 1;";
+        try (
+            Connection conn = DatabaseManager.getConnection();
+            java.sql.PreparedStatement ps = conn.prepareStatement(sql)
+        ) {
+            ps.setDouble(1, dinero);
+            ps.setInt(2, clock.getDate().getYear());
+            ps.setInt(3, clock.getDate().getMonth());
+            ps.setInt(4, clock.getDate().getDay());
+            ps.setInt(5, clock.getHour());
+            ps.setInt(6, clock.getMinute());
+            ps.executeUpdate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Resetea la partida del usuario a su estado inicial:
+     *   - Borra todas las acciones poseídas (Stats).
+     *   - Restaura el dinero de partida y la fecha/hora de inicio.
+     *
+     * @param dineroInicial  Dinero con el que comienza el jugador.
+     * @param anyoInicial    Año  de inicio  (ej. 1996).
+     * @param mesInicial     Mes  de inicio  (ej. 6).
+     * @param diaInicial     Día  de inicio  (ej. 1).
+     * @param horaInicial    Hora de inicio  (ej. 8).
+     * @param minutoInicial  Minuto de inicio (ej. 0).
+     */
+    public void resetearPartida(double dineroInicial,
+                                int anyoInicial, int mesInicial, int diaInicial,
+                                int horaInicial, int minutoInicial) {
+        String sqlDeleteStats =
+            "DELETE FROM Stats "
+          + "WHERE partida_id = (SELECT id FROM Partidas_guardadas "
+          + "                    WHERE usuario_id = 1 LIMIT 1);";
+
+        String sqlResetPartida =
+            "UPDATE Partidas_guardadas "
+          + "SET dinero = ?, anyo = ?, mes = ?, dia = ?, "
+          + "    hora = ?, minuto = ? "
+          + "WHERE usuario_id = 1;";
+
+        try (Connection conn = DatabaseManager.getConnection()) {
+
+            // 1. Borrar acciones del usuario
+            try (java.sql.PreparedStatement ps =
+                         conn.prepareStatement(sqlDeleteStats)) {
+                ps.executeUpdate();
+            }
+
+            // 2. Restaurar dinero y fecha
+            try (java.sql.PreparedStatement ps =
+                         conn.prepareStatement(sqlResetPartida)) {
+                ps.setDouble(1, dineroInicial);
+                ps.setInt(2, anyoInicial);
+                ps.setInt(3, mesInicial);
+                ps.setInt(4, diaInicial);
+                ps.setInt(5, horaInicial);
+                ps.setInt(6, minutoInicial);
+                ps.executeUpdate();
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
