@@ -8,6 +8,17 @@ import tools.AudioManager;
 import tools.CompanyData;
 import tools.MarketService;
 
+
+/**
+ * Controlador MVC de la ventana de inversión (Robbin Hub).
+ *
+ * <p>Coordina la comunicación entre {@link InvestmentModel} e
+ * {@link InvestmentPanel}, gestionando las acciones del usuario
+ * (cambio de empresa, movimiento de sliders, compra y venta de acciones)
+ * y manteniéndose sincronizado con el {@link MarketService} y el
+ * {@link StatsController} para reflejar cambios externos como variaciones
+ * de precio de mercado o resets de partida.</p>
+ */
 public class InvestmentController {
 
     private final InvestmentModel  model;
@@ -18,6 +29,18 @@ public class InvestmentController {
     private int accionesComprar = 0;
     private int accionesVender  = 0;
 
+    /**
+     * Crea el controlador y conecta todos los listeners de la vista.
+     *
+     * @param model           modelo de datos con la lista de empresas y la
+     *                        empresa seleccionada actualmente.
+     * @param view            panel de la UI al que este controlador enviará
+     *                        actualizaciones.
+     * @param statsController controlador de estadísticas usado para ejecutar
+     *                        operaciones de compra/venta y recibir
+     *                        notificaciones de cambio externo.
+     * @param market          servicio de mercado que emite ticks de precio.
+     */
     public InvestmentController(
             InvestmentModel model,
             InvestmentPanel view,
@@ -31,10 +54,11 @@ public class InvestmentController {
         init();
     }
 
-    // =====================================================
-    // INICIALIZACIÓN
-    // =====================================================
-
+    /**
+     * Inicializa todos los listeners de la vista: dropdown de empresa,
+     * sliders de compra/venta, campos de texto y botones de acción.
+     * También registra los listeners de mercado y de cambio externo.
+     */
     private void init() {
 
         view.setCompanies(model.getCompanies());
@@ -94,10 +118,13 @@ public class InvestmentController {
         );
     }
 
-    // =====================================================
-    // REACCIÓN A CAMBIOS EXTERNOS (reset, etc.)
-    // =====================================================
-
+    /**
+     * Reacciona a cambios externos en el portfolio (por ejemplo, un reset
+     * de partida). Sincroniza las acciones en propiedad con el estado real
+     * del {@link StatsController} y resetea los controles de compra/venta.
+     *
+     * <p>Debe ejecutarse siempre en el hilo de Swing (EDT).</p>
+     */
     private void onExternalChange() {
         // Recargar el estado real de la empresa seleccionada desde el modelo
         CompanyData c = model.getSelectedCompany();
@@ -113,10 +140,11 @@ public class InvestmentController {
         updateView();
     }
 
-    // =====================================================
-    // ACTUALIZAR VISTA AL CAMBIAR DE EMPRESA
-    // =====================================================
-
+    /**
+     * Actualiza todos los elementos de la vista al seleccionar una empresa
+     * diferente en el dropdown: información de la empresa, máximos de los
+     * sliders y costes mostrados.
+     */
     private void updateView() {
         CompanyData c = model.getSelectedCompany();
         if (c == null) return;
@@ -138,10 +166,10 @@ public class InvestmentController {
         view.setSellIncome(0);
     }
 
-    // =====================================================
-    // SINCRONIZAR CAMPOS DE TEXTO → SLIDERS
-    // =====================================================
-
+    /**
+     * Lee el valor del campo de texto de compra, lo valida, lo acota al
+     * máximo permitido y sincroniza el slider correspondiente.
+     */
     private void syncBuyField() {
         try {
             int v = Integer.parseInt(view.getBuyField().getText().trim());
@@ -154,6 +182,10 @@ public class InvestmentController {
         }
     }
 
+    /**
+     * Lee el valor del campo de texto de venta, lo valida, lo acota al
+     * máximo permitido y sincroniza el slider correspondiente.
+     */
     private void syncSellField() {
         try {
             int v = Integer.parseInt(view.getSellField().getText().trim());
@@ -166,24 +198,39 @@ public class InvestmentController {
         }
     }
 
-    // =====================================================
-    // CÁLCULOS
-    // =====================================================
-
+    /**
+     * Calcula el coste total de comprar las acciones seleccionadas al
+     * precio de mercado actual.
+     *
+     * @return coste en la moneda del juego, o {@code 0} si no hay empresa
+     *         seleccionada.
+     */
     private double calcBuyCost() {
         CompanyData c = model.getSelectedCompany();
         return (c == null) ? 0 : accionesComprar * c.getValorAccion();
     }
 
+    /**
+     * Calcula el ingreso total de vender las acciones seleccionadas al
+     * precio de mercado actual.
+     *
+     * @return ingreso en la moneda del juego, o {@code 0} si no hay empresa
+     *         seleccionada.
+     */
     private double calcSellIncome() {
         CompanyData c = model.getSelectedCompany();
         return (c == null) ? 0 : accionesVender * c.getValorAccion();
     }
 
-    // =====================================================
-    // COMPRAR  — usa trade() unificado
-    // =====================================================
-
+    /**
+     * Ejecuta la operación de compra: delega en
+     * {@link StatsController#trade} para descontar dinero y actualizar el
+     * portfolio, actualiza la vista y reproduce el efecto de sonido de caja
+     * registradora.
+     *
+     * <p>No hace nada si no hay empresa seleccionada o si la cantidad a
+     * comprar es cero.</p>
+     */
     private void buyShares() {
         CompanyData c = model.getSelectedCompany();
         if (c == null || accionesComprar <= 0) return;
@@ -208,10 +255,15 @@ public class InvestmentController {
             "/main/resources/audio/sfx/cash-register-sound-efect.wav");
     }
 
-    // =====================================================
-    // VENDER  — usa trade() unificado
-    // =====================================================
-
+    /**
+     * Ejecuta la operación de venta: delega en
+     * {@link StatsController#trade} con cantidad negativa para ingresar
+     * dinero y actualizar el portfolio, actualiza la vista y reproduce el
+     * efecto de sonido correspondiente.
+     *
+     * <p>Reproduce un pitido de error y aborta si no hay empresa
+     * seleccionada o si la cantidad a vender es cero.</p>
+     */
     private void sellShares() {
         CompanyData c = model.getSelectedCompany();
         if (c == null || accionesVender <= 0) {

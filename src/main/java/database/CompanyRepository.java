@@ -11,8 +11,40 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * Repositorio de acceso a datos para las operaciones relacionadas con
+ * empresas, acciones del jugador y el estado de la partida guardada.
+ * <p>
+ * Todas las operaciones trabajan contra la partida del usuario con
+ * {@code usuario_id = 1}. Cada método abre su propia conexión a través
+ * de {@link DatabaseManager#getConnection()} y la cierra al terminar,
+ * por lo que no es necesario gestionar el ciclo de vida de la conexión
+ * desde fuera de esta clase.
+ * </p>
+ * <p>
+ * En caso de error SQL, los métodos capturan la excepción e imprimen
+ * el stack trace sin relanzarla, devolviendo el valor por defecto
+ * correspondiente (lista vacía, {@code 0}, etc.).
+ * </p>
+ */
 public class CompanyRepository {
 
+    /**
+     * Recupera todas las empresas disponibles en el mercado, incluyendo
+     * el número de acciones que el jugador posee de cada una.
+     * <p>
+     * Realiza un {@code LEFT JOIN} con {@code Partidas_guardadas} y
+     * {@code Stats} para obtener las acciones en propiedad del usuario.
+     * Si el usuario no posee acciones de una empresa, el campo
+     * {@code acciones_usuario} devuelve {@code 0} gracias al
+     * {@code COALESCE}.
+     * </p>
+     *
+     * @return lista con todos los {@link CompanyData} encontrados en la
+     *         tabla {@code Empresas}; nunca {@code null}, puede estar vacía
+     *         si ocurre un error o la tabla está vacía.
+     */
     public List<CompanyData> getAllCompanies() {
 
         List<CompanyData> companies =
@@ -77,6 +109,13 @@ public class CompanyRepository {
         return companies;
     }
     
+    /**
+     * Consulta el dinero actual del jugador almacenado en la partida guardada.
+     *
+     * @return el saldo del jugador en la columna {@code dinero} de
+     *         {@code Partidas_guardadas}, o {@code 0} si no existe registro
+     *         o se produce un error.
+     */
     public double getDineroJugador() {
         String sql = "SELECT dinero FROM partidas_guardadas "  // ← ajusta el nombre de columna
                    + "WHERE usuario_id = 1 LIMIT 1;";
@@ -92,6 +131,16 @@ public class CompanyRepository {
         return 0;
     }
     
+    /**
+     * Persiste el saldo actual del jugador en la base de datos.
+     * <p>
+     * Actualiza únicamente la columna {@code dinero} de
+     * {@code Partidas_guardadas} para {@code usuario_id = 1}, sin
+     * modificar fecha, hora ni acciones.
+     * </p>
+     *
+     * @param dinero nuevo saldo del jugador que se escribirá en BD.
+     */
     public void guardarDinero(double dinero) {
         String sql = "UPDATE Partidas_guardadas SET dinero = ? "
                    + "WHERE usuario_id = 1;";
@@ -106,7 +155,19 @@ public class CompanyRepository {
         }
     }
     
- // Guardar n_acciones de una empresa para el usuario
+    /**
+     * Guarda o actualiza el número de acciones que el jugador posee de
+     * una empresa concreta, siguiendo un patrón <em>upsert</em>:
+     * <ol>
+     *   <li>Intenta actualizar la fila existente en {@code Stats}.</li>
+     *   <li>Si no existía ninguna fila afectada, la inserta.</li>
+     * </ol>
+     *
+     * @param empresaId id de la empresa ({@code Stats.empresa_id}).
+     * @param nAcciones número de acciones a almacenar; debe ser mayor que
+     *                  cero (para eliminar un registro usa
+     *                  {@link #eliminarAcciones(int)}).
+     */
     public void guardarAcciones(int empresaId, int nAcciones) {
         // Intentar actualizar primero
         String sqlUpdate =
@@ -142,7 +203,17 @@ public class CompanyRepository {
         }
     }
 
-    // Eliminar registro cuando las acciones llegan a 0
+    /**
+     * Elimina el registro de acciones del jugador para una empresa
+     * determinada, equivalente a tener {@code 0} acciones en cartera.
+     * <p>
+     * Se invoca típicamente desde {@link system.Stats.StatsModel} cuando
+     * el jugador vende todas sus acciones de una empresa.
+     * </p>
+     *
+     * @param empresaId id de la empresa cuyas acciones se eliminarán de
+     *                  la tabla {@code Stats}.
+     */
     public void eliminarAcciones(int empresaId) {
         String sql =
             "DELETE FROM Stats "
@@ -161,8 +232,16 @@ public class CompanyRepository {
     }
 
     /**
-     * Guarda el estado completo de la partida: dinero + fecha + hora.
-     * Equivale a un "guardado rápido" que puede llamarse en cualquier momento.
+     * Guarda el estado completo de la partida activa: dinero, fecha y hora
+     * de juego en un único {@code UPDATE}.
+     * <p>
+     * Equivale a un "guardado rápido" que puede invocarse en cualquier
+     * momento sin alterar las acciones en cartera del jugador.
+     * </p>
+     *
+     * @param dinero saldo actual del jugador que se persistirá.
+     * @param clock  reloj del juego del que se extraen año, mes, día,
+     *               hora y minuto actuales para escribirlos en BD.
      */
     public void guardarPartida(double dinero, Clock clock) {
         String sql =
@@ -187,16 +266,26 @@ public class CompanyRepository {
     }
 
     /**
-     * Resetea la partida del usuario a su estado inicial:
-     *   - Borra todas las acciones poseídas (Stats).
-     *   - Restaura el dinero de partida y la fecha/hora de inicio.
+     * Resetea la partida del usuario a su estado inicial en dos pasos
+     * atómicos dentro de la misma conexión:
+     * <ol>
+     *   <li>Borra todas las filas de {@code Stats} asociadas a la partida
+     *       del usuario (elimina toda la cartera de acciones).</li>
+     *   <li>Restaura el dinero y la fecha/hora de inicio en
+     *       {@code Partidas_guardadas}.</li>
+     * </ol>
+     * <p>
+     * Este método actúa únicamente sobre la capa de persistencia; el
+     * llamador es responsable de reiniciar los objetos en memoria
+     * (p. ej. {@link system.Player#reset(double)} y {@link tools.Clock}).
+     * </p>
      *
-     * @param dineroInicial  Dinero con el que comienza el jugador.
-     * @param anyoInicial    Año  de inicio  (ej. 1996).
-     * @param mesInicial     Mes  de inicio  (ej. 6).
-     * @param diaInicial     Día  de inicio  (ej. 1).
-     * @param horaInicial    Hora de inicio  (ej. 8).
-     * @param minutoInicial  Minuto de inicio (ej. 0).
+     * @param dineroInicial  saldo con el que comenzará la nueva partida.
+     * @param anyoInicial    año  de inicio del reloj de juego (ej. {@code 1996}).
+     * @param mesInicial     mes  de inicio del reloj de juego (ej. {@code 6}).
+     * @param diaInicial     día  de inicio del reloj de juego (ej. {@code 1}).
+     * @param horaInicial    hora de inicio del reloj de juego (ej. {@code 8}).
+     * @param minutoInicial  minuto de inicio del reloj de juego (ej. {@code 0}).
      */
     public void resetearPartida(double dineroInicial,
                                 int anyoInicial, int mesInicial, int diaInicial,

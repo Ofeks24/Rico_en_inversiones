@@ -25,6 +25,19 @@ import tools.Clock;
 import tools.RoundedPanel;
 import tools.Screen;
 
+
+/**
+ * Pantalla de opciones del juego. Permite al jugador ajustar el audio
+ * (música y efectos de sonido), guardar manualmente la partida y
+ * resetear todos los datos de progreso.
+ *
+ * <p>Se presenta como un panel superpuesto centrado ({@link RoundedPanel})
+ * sobre el fondo animado del juego. Los controles de volumen están
+ * vinculados en tiempo real al {@link AudioManager} singleton.</p>
+ *
+ * <p>Implementa {@link Screen} para el ciclo de vida de
+ * {@link tools.ScreenManager}, aunque sus callbacks están vacíos.</p>
+ */
 public class OptionsWindow extends JPanel implements Screen {
 
     private Runnable onBack;
@@ -46,9 +59,21 @@ public class OptionsWindow extends JPanel implements Screen {
     private static final Color DANGER       = new Color(200, 50, 50);
 
     /**
-     * @param onBack   Acción al pulsar "Volver".
-     * @param clock    Reloj del juego (necesario para guardar fecha/hora
-     *                 y para resetearla al borrar datos).
+     * Construye la pantalla de opciones con todos sus controles.
+     *
+     * <p>Secciones incluidas:</p>
+     * <ul>
+     *   <li><b>Música</b>: checkbox de activación y slider de volumen.</li>
+     *   <li><b>Efectos de sonido</b>: checkbox de activación y slider de volumen.</li>
+     *   <li><b>Datos de partida</b>: botón de guardado rápido y botón de reset.</li>
+     * </ul>
+     *
+     * @param onBack  {@link Runnable} ejecutado al pulsar "Volver"; normalmente
+     *                navega al menú principal.
+     * @param onReset {@link Runnable} adicional de reset (actualmente delega en
+     *                {@link system.Stats.StatsController#reset()}).
+     * @param clock   Reloj del juego; necesario para guardar la fecha/hora
+     *                actual y para restaurarla al resetear la partida.
      */
     public OptionsWindow(Runnable onBack, Runnable onReset, Clock clock) {
         setOpaque(false);
@@ -184,11 +209,15 @@ public class OptionsWindow extends JPanel implements Screen {
         add(overlay);
     }
 
-    // =========================================================
-    // LÓGICA DE GUARDADO Y RESET
-    // =========================================================
-
-    /** Persiste el estado actual del jugador (dinero + fecha + hora). */
+    /**
+     * Persiste el estado actual del jugador (dinero, fecha y hora del juego)
+     * en la base de datos llamando a
+     * {@link database.CompanyRepository#guardarPartida(double, Clock)}.
+     * Muestra un diálogo informativo al completarse.
+     *
+     * @param clock Reloj del juego del que se obtienen la fecha y la hora
+     *              actuales para guardarlas.
+     */
     private void guardarPartidaActual(Clock clock) {
         double dinero = Player.getInstance().getDinero();
         new CompanyRepository().guardarPartida(dinero, clock);
@@ -202,9 +231,18 @@ public class OptionsWindow extends JPanel implements Screen {
     }
 
     /**
-     * Muestra un diálogo de confirmación y, si el usuario acepta,
-     * borra todas las Stats, resetea dinero y fecha en BD,
-     * reinicia el singleton de Player y restaura el reloj.
+     * Muestra un diálogo de confirmación y, si el jugador acepta, ejecuta
+     * un reset completo de la partida:
+     * <ol>
+     *   <li>Borra todas las posiciones de la cartera en BD
+     *       ({@link database.CompanyRepository#resetearPartida}).</li>
+     *   <li>Reinicia el singleton {@link Player} con el dinero inicial.</li>
+     *   <li>Restaura la fecha y hora del reloj a los valores de inicio.</li>
+     * </ol>
+     * Muestra un diálogo informativo al finalizar.
+     *
+     * @param clock Reloj del juego cuya fecha y hora se restauran al estado
+     *              inicial tras el reset.
      */
     private void confirmarYResetear(Clock clock) {
         int respuesta = JOptionPane.showConfirmDialog(
@@ -242,10 +280,13 @@ public class OptionsWindow extends JPanel implements Screen {
         );
     }
 
-    // =========================================================
-    // HELPERS UI
-    // =========================================================
-
+    /**
+     * Crea un separador visual de sección con una etiqueta de texto en color
+     * de acento y una línea horizontal.
+     *
+     * @param texto Título de la sección que aparece a la izquierda del separador.
+     * @return      Panel compuesto (etiqueta + línea) listo para añadir al layout.
+     */
     private JPanel crearSeparador(String texto) {
         JPanel p = new JPanel(new BorderLayout(8, 0));
         p.setOpaque(false);
@@ -263,6 +304,13 @@ public class OptionsWindow extends JPanel implements Screen {
         return p;
     }
 
+    /**
+     * Crea un {@link JCheckBox} con el estilo visual del panel de opciones.
+     *
+     * @param texto    Etiqueta descriptiva del checkbox.
+     * @param selected Estado inicial (marcado/desmarcado).
+     * @return         Checkbox configurado con fuente y color corporativos.
+     */
     private JCheckBox crearCheckbox(String texto, boolean selected) {
         JCheckBox cb = new JCheckBox(texto, selected);
         cb.setFont(NORMAL_FONT);
@@ -271,7 +319,16 @@ public class OptionsWindow extends JPanel implements Screen {
         cb.setAlignmentX(Component.LEFT_ALIGNMENT);
         return cb;
     }
-
+    
+    /**
+     * Crea una fila de control de volumen formada por una etiqueta, un
+     * {@link JSlider} y una etiqueta de porcentaje que se actualiza en
+     * tiempo real al mover el slider.
+     *
+     * @param etiqueta     Texto descriptivo que aparece a la izquierda del slider.
+     * @param valorInicial Valor inicial del slider (0–100).
+     * @return             Panel con la fila de control lista para añadir al layout.
+     */
     private JPanel crearSliderPanel(String etiqueta, int valorInicial) {
         JPanel fila = new JPanel(new BorderLayout(10, 0));
         fila.setOpaque(false);
@@ -310,7 +367,15 @@ public class OptionsWindow extends JPanel implements Screen {
         return fila;
     }
 
-    /** Botón de acción genérico con color personalizado */
+    /**
+     * Crea un botón de acción genérico con un color de fondo personalizado,
+     * texto blanco y ancho máximo ilimitado (para que ocupe todo el ancho
+     * disponible en un {@link BoxLayout}).
+     *
+     * @param texto Etiqueta visible del botón.
+     * @param color Color de fondo del botón (p. ej. azul de acento o rojo de peligro).
+     * @return      {@link JButton} configurado y listo para añadir.
+     */
     private JButton crearBotonAccion(String texto, Color color) {
         JButton b = new JButton(texto);
         b.setFont(NORMAL_FONT);
@@ -323,6 +388,13 @@ public class OptionsWindow extends JPanel implements Screen {
         return b;
     }
 
+    /**
+     * Calcula el tamaño preferido del overlay central en función del tamaño
+     * actual del panel contenedor, manteniéndolo entre unos valores mínimos
+     * y máximos definidos.
+     *
+     * @return {@link Dimension} con el ancho y alto preferidos del overlay.
+     */
     private Dimension calcularTamanoOverlay() {
         int ancho = (int) (getWidth()  * 0.55);
         int alto  = (int) (getHeight() * 0.75);
@@ -335,6 +407,8 @@ public class OptionsWindow extends JPanel implements Screen {
         return new Dimension(ancho, alto);
     }
 
+    /** No realiza ninguna acción al mostrarse esta pantalla. */
     @Override public void onShow() {}
+    /** No realiza ninguna acción al mostrarse esta pantalla. */
     @Override public void onHide() {}
 }

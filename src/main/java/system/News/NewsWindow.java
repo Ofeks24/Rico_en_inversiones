@@ -319,6 +319,9 @@ public class NewsWindow extends JPanel implements Screen {
         private final JTextArea cuerpoArea;
         private final JLabel    imagenLabel;
 
+        // Referencia al viewport para resetear el scroll al mostrar una noticia
+        private final JScrollPane mainScroll;
+
         DetallePanel(Runnable onVolver) {
             setLayout(new BorderLayout());
             setBackground(C_BG);
@@ -376,20 +379,20 @@ public class NewsWindow extends JPanel implements Screen {
             titularLabel.setFont(new Font("Serif", Font.BOLD + Font.ITALIC, 34));
             titularLabel.setForeground(C_TITLE);
 
-            norte.add(filaTop,    BorderLayout.NORTH);
-            norte.add(sepWrapper, BorderLayout.CENTER);
+            norte.add(filaTop,      BorderLayout.NORTH);
+            norte.add(sepWrapper,   BorderLayout.CENTER);
             norte.add(titularLabel, BorderLayout.SOUTH);
 
             add(norte, BorderLayout.NORTH);
 
-            // ── CENTRO: cuerpo de la noticia ──────────────
-            JPanel centro = new JPanel(new BorderLayout());
-            centro.setBackground(C_SECTION);
-            centro.setBorder(BorderFactory.createCompoundBorder(
-                new MatteBorder(0, 2, 0, 2, C_BORDER),
-                new EmptyBorder(36, 80, 36, 80)
-            ));
+            // ── CENTRO: columna única con scroll ──────────────
+            // Contenedor scrollable: texto encima, imagen debajo
+            JPanel columna = new JPanel();
+            columna.setLayout(new BoxLayout(columna, BoxLayout.Y_AXIS));
+            columna.setBackground(C_SECTION);
+            columna.setBorder(new EmptyBorder(36, 80, 36, 80));
 
+            // Texto del artículo
             cuerpoArea = new JTextArea();
             cuerpoArea.setFont(new Font("Serif", Font.PLAIN, 22));
             cuerpoArea.setForeground(C_TEXT);
@@ -399,38 +402,49 @@ public class NewsWindow extends JPanel implements Screen {
             cuerpoArea.setEditable(false);
             cuerpoArea.setOpaque(false);
             cuerpoArea.setFocusable(false);
+            cuerpoArea.setAlignmentX(Component.CENTER_ALIGNMENT);
+            columna.add(cuerpoArea);
 
-            JScrollPane scroll = new JScrollPane(cuerpoArea,
-                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-            scroll.setBorder(null);
-            scroll.setOpaque(false);
-            scroll.getViewport().setOpaque(false);
+            // Separador decorativo entre texto e imagen
+            columna.add(Box.createVerticalStrut(32));
+            JSeparator sepH = new JSeparator(SwingConstants.HORIZONTAL);
+            sepH.setForeground(C_BORDER);
+            sepH.setMaximumSize(new Dimension(Integer.MAX_VALUE, 2));
+            sepH.setAlignmentX(Component.CENTER_ALIGNMENT);
+            columna.add(sepH);
+            columna.add(Box.createVerticalStrut(32));
 
-            centro.add(scroll, BorderLayout.CENTER);
-            add(centro, BorderLayout.CENTER);
-
-            // ── SUR: imagen de empresa/sector ─────────────
-            JPanel sur = new JPanel(new BorderLayout(0, 8));
-            sur.setBackground(C_HEADER);
-            sur.setBorder(BorderFactory.createCompoundBorder(
-                new MatteBorder(2, 2, 2, 2, C_BORDER),
-                new EmptyBorder(16, 24, 16, 24)
-            ));
-
+            // Imagen grande centrada
             imagenLabel = new JLabel("", SwingConstants.CENTER);
-            imagenLabel.setPreferredSize(new Dimension(0, 90));
+            imagenLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            columna.add(imagenLabel);
 
+            // Fleuron al pie de la imagen
+            columna.add(Box.createVerticalStrut(18));
             JLabel fleuron = new JLabel("— ✦ —", SwingConstants.CENTER);
-            fleuron.setFont(new Font("Serif", Font.ITALIC, 14));
+            fleuron.setFont(new Font("Serif", Font.ITALIC, 16));
             fleuron.setForeground(
                 new Color(C_BORDER.getRed(), C_BORDER.getGreen(),
                           C_BORDER.getBlue(), 150));
+            fleuron.setAlignmentX(Component.CENTER_ALIGNMENT);
+            columna.add(fleuron);
+            columna.add(Box.createVerticalStrut(16));
 
-            sur.add(imagenLabel, BorderLayout.CENTER);
-            sur.add(fleuron,     BorderLayout.SOUTH);
+            // Wrap en un panel con borde exterior
+            JPanel centroWrapper = new JPanel(new BorderLayout());
+            centroWrapper.setBackground(C_SECTION);
+            centroWrapper.setBorder(new MatteBorder(0, 2, 2, 2, C_BORDER));
+            centroWrapper.add(columna, BorderLayout.CENTER);
 
-            add(sur, BorderLayout.SOUTH);
+            mainScroll = new JScrollPane(centroWrapper,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            mainScroll.setBorder(null);
+            mainScroll.getVerticalScrollBar().setUnitIncrement(16);
+
+            add(mainScroll, BorderLayout.CENTER);
+            revalidate();
+            repaint();
         }
 
         // ── Rellenar con datos del NewsEvent ──────────────
@@ -443,10 +457,14 @@ public class NewsWindow extends JPanel implements Screen {
 
             // Cuerpo
             cuerpoArea.setText(ev.getCuerpo());
-            cuerpoArea.setCaretPosition(0);
 
             // Imagen por sector
             cargarImagen(ev.getSector());
+
+            // Volver al inicio del scroll
+            SwingUtilities.invokeLater(() ->
+                mainScroll.getVerticalScrollBar().setValue(0)
+            );
 
             revalidate();
             repaint();
@@ -461,7 +479,8 @@ public class NewsWindow extends JPanel implements Screen {
                     int origW = raw.getIconWidth();
                     int origH = raw.getIconHeight();
                     if (origH > 0 && origW > 0) {
-                        int newH = 120;
+                        // Imagen grande: 420 px de alto
+                        int newH = 420;
                         int newW = (origW * newH) / origH;
                         Image scaled = raw.getImage()
                             .getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
@@ -472,7 +491,6 @@ public class NewsWindow extends JPanel implements Screen {
                         imagenLabel.setText("");
                     }
                 } else {
-                    // Recurso no encontrado — dejamos el label vacío
                     imagenLabel.setIcon(null);
                     imagenLabel.setText("");
                 }

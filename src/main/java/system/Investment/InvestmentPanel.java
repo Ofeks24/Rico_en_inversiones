@@ -28,6 +28,26 @@ import javax.swing.plaf.basic.BasicSliderUI;
 import tools.CompanyData;
 import tools.MarketService;
 
+
+/**
+ * Vista MVC de la ventana de inversión (Robbin Hub).
+ *
+ * <p>Construye y organiza todos los componentes gráficos de la pantalla de
+ * compraventa de acciones:</p>
+ * <ul>
+ *   <li>Barra superior con dropdown de selección de empresa.</li>
+ *   <li>Gráfico de velas ({@link CompanyChartPanel}) a la izquierda.</li>
+ *   <li>Sliders de compra y venta con campos de texto y totales calculados.</li>
+ *   <li>Panel derecho con información de la empresa y botones de acción.</li>
+ * </ul>
+ *
+ * <p>El layout principal se reparte en un 72 % para la zona izquierda
+ * (gráfico + sliders) y un 28 % para el panel derecho. Los sliders ocupan
+ * el 20 % inferior de la zona izquierda.</p>
+ *
+ * <p>Todas las fuentes se escalan proporcionalmente a la resolución de
+ * pantalla tomando 1920 px de ancho como referencia.</p>
+ */
 public class InvestmentPanel extends JPanel {
 
     // ── Colores ───────────────────────────────────────────
@@ -77,10 +97,14 @@ public class InvestmentPanel extends JPanel {
     private JButton comprarButton;
     private JButton venderButton;
 
-    // =====================================================
-    // CONSTRUCTOR
-    // =====================================================
-
+    /**
+     * Construye el panel completo con todos sus subpaneles y componentes.
+     *
+     * @param market          servicio de mercado usado por el gráfico de
+     *                        velas para suscribirse a actualizaciones de precio.
+     * @param empresaIdInicial identificador de la empresa cuyo gráfico se
+     *                         mostrará al abrir la ventana.
+     */
     public InvestmentPanel(MarketService market, int empresaIdInicial) {
         setLayout(new BorderLayout());
         setBorder(BorderFactory.createLineBorder(Color.BLACK, 1));
@@ -90,10 +114,12 @@ public class InvestmentPanel extends JPanel {
         add(crearContenido(market, empresaIdInicial), BorderLayout.CENTER);
     }
 
-    // =====================================================
-    // BARRA SUPERIOR — dropdown
-    // =====================================================
-
+    /**
+     * Construye la barra superior que contiene el dropdown de selección
+     * de empresa.
+     *
+     * @return panel listo para añadir en {@link java.awt.BorderLayout#NORTH}.
+     */
     private JPanel crearBarraSuperior() {
         JPanel top = new JPanel(new BorderLayout());
         top.setBackground(CARD);
@@ -114,10 +140,19 @@ public class InvestmentPanel extends JPanel {
     // CONTENIDO PRINCIPAL
     // División vertical:
     //   80% gráfica + panel derecho  |  20% sliders (altura)
-    // División horizontal:
+    //   División horizontal:
     //   72% izquierda               |  28% panel derecho
     // =====================================================
-
+    /**
+     * Construye el panel de contenido principal con un layout personalizado
+     * (null layout con {@code doLayout} sobreescrito) que posiciona el
+     * gráfico, los sliders y el panel derecho proporcionalmente al tamaño
+     * disponible.
+     *
+     * @param market          servicio de mercado para el gráfico.
+     * @param empresaIdInicial empresa inicial del gráfico.
+     * @return panel raíz del contenido principal.
+     */
     private JPanel crearContenido(MarketService market, int empresaIdInicial) {
 
         JPanel root = new JPanel(null) {
@@ -165,10 +200,12 @@ public class InvestmentPanel extends JPanel {
         return root;
     }
 
-    // =====================================================
-    // PANEL DE SLIDERS (comprar + vender)
-    // =====================================================
-
+    /**
+     * Construye el contenedor de los dos sliders (compra y venta),
+     * apilados verticalmente.
+     *
+     * @return panel con los dos sliders listos para usar.
+     */
     private JPanel crearPanelSliders() {
         JPanel contenedor = new JPanel(new BorderLayout(8, 0));
         contenedor.setBackground(BG);
@@ -177,6 +214,19 @@ public class InvestmentPanel extends JPanel {
         return contenedor;
     }
 
+    /**
+     * Construye una fila de control de slider con etiqueta, slider,
+     * campo de texto numérico y label de coste/ingreso total.
+     *
+     * <p>Registra las referencias de los componentes en los campos de
+     * instancia correspondientes según el parámetro {@code esBuy}.</p>
+     *
+     * @param etiqueta texto de la etiqueta izquierda ("COMPRAR" o "VENDER").
+     * @param color    color del slider y la etiqueta de total.
+     * @param esBuy    {@code true} para la fila de compra, {@code false}
+     *                 para la de venta.
+     * @return panel fila completamente construido.
+     */
     private JPanel crearFilaSlider(String etiqueta, Color color, boolean esBuy) {
 
         JPanel fila = new JPanel(new BorderLayout(6, 0));
@@ -225,6 +275,14 @@ public class InvestmentPanel extends JPanel {
         return fila;
     }
 
+    /**
+     * Crea un {@link JSlider} con el aspecto personalizado del juego:
+     * thumb redondeado pintado en el color indicado, sin marcas ni
+     * etiquetas de escala.
+     *
+     * @param color color del thumb del slider.
+     * @return slider configurado.
+     */
     private JSlider crearSlider(Color color) {
         JSlider s = new JSlider(0, 100, 0);
         s.setBackground(CARD);
@@ -246,10 +304,13 @@ public class InvestmentPanel extends JPanel {
         return s;
     }
 
-    // =====================================================
-    // PANEL DERECHO — info + botones
-    // =====================================================
-
+    /**
+     * Construye el panel derecho con el nombre de la empresa, un bloque
+     * de descripción expandible, estadísticas de mercado y los botones
+     * de compra y venta.
+     *
+     * @return panel derecho listo para añadir al layout principal.
+     */
     private JPanel crearPanelDerecho() {
 
         JPanel derecha = new JPanel();
@@ -300,17 +361,27 @@ public class InvestmentPanel extends JPanel {
         return derecha;
     }
 
-    // =====================================================
-    // HELPERS
-    // =====================================================
-
-    /** Escala una dimensión de referencia (diseñada a 1920px) a la pantalla actual. */
+    /**
+     * Escala una dimensión de referencia diseñada para 1920 px de ancho
+     * a la resolución real de la pantalla actual.
+     *
+     * @param w ancho de referencia en píxeles a 1920 px.
+     * @param h alto de referencia en píxeles.
+     * @return {@link java.awt.Dimension} escalada a la resolución actual.
+     */
     private static Dimension scaled(int w, int h) {
         int sw = Toolkit.getDefaultToolkit().getScreenSize().width;
         float s = sw / 1920f;
         return new Dimension(Math.round(w * s), Math.round(h * s));
     }
 
+    /**
+     * Crea un {@link JLabel} con el estilo visual estándar del panel
+     * (fuente normal, color de texto, alineado a la izquierda).
+     *
+     * @param txt texto inicial de la etiqueta.
+     * @return etiqueta configurada.
+     */
     private JLabel crearLabel(String txt) {
         JLabel l = new JLabel(txt);
         l.setForeground(TEXT);
@@ -321,6 +392,14 @@ public class InvestmentPanel extends JPanel {
         return l;
     }
 
+    /**
+     * Crea un botón de acción (comprar/vender) con el estilo visual del
+     * juego: fondo de color sólido, texto blanco y cursor de mano.
+     *
+     * @param txt   texto del botón.
+     * @param color color de fondo del botón.
+     * @return botón configurado.
+     */
     private JButton crearBoton(String txt, Color color) {
         JButton b = new JButton(txt);
         b.setFont(BUTTON_FONT);
@@ -333,6 +412,14 @@ public class InvestmentPanel extends JPanel {
         return b;
     }
 
+    /**
+     * Construye un bloque de descripción expandible/colapsable.
+     * Al hacer clic en la cabecera se muestra u oculta un
+     * {@link JTextArea} con la descripción completa de la empresa.
+     *
+     * @param texto descripción inicial a mostrar en el área de texto.
+     * @return panel con cabecera clicable y área de texto colapsable.
+     */
     private JPanel crearDescripcionExpandible(String texto) {
         descripcionPanel = new JPanel();
         descripcionPanel.setLayout(new BorderLayout());
@@ -383,10 +470,12 @@ public class InvestmentPanel extends JPanel {
         return descripcionPanel;
     }
 
-    // =====================================================
-    // API PÚBLICA (usada por el Controller)
-    // =====================================================
-
+    /**
+     * Actualiza el texto del área de descripción con la actividad de la
+     * empresa seleccionada.
+     *
+     * @param texto nueva descripción a mostrar.
+     */
     public void setDescripcion(String texto) {
         if (descripcionPanel == null) return;
         BorderLayout bl = (BorderLayout) descripcionPanel.getLayout();
@@ -397,11 +486,22 @@ public class InvestmentPanel extends JPanel {
         }
     }
 
+    /**
+     * Rellena el dropdown con la lista de empresas disponibles.
+     *
+     * @param companies lista de empresas a mostrar en el combo.
+     */
     public void setCompanies(java.util.List<CompanyData> companies) {
         companyDropdown.removeAllItems();
         for (CompanyData c : companies) companyDropdown.addItem(c);
     }
 
+    /**
+     * Actualiza todos los componentes de información de empresa: nombre,
+     * descripción, precio y acciones en propiedad.
+     *
+     * @param c empresa cuyos datos se mostrarán.
+     */
     public void setCompanyInfo(CompanyData c) {
         if (c == null) return;
         nombreLabel.setFont(TITLE_FONT);
@@ -411,6 +511,12 @@ public class InvestmentPanel extends JPanel {
         accionesPropiedadLabel.setText("En propiedad: " + c.getAccionesPropiedad());
     }
 
+    /**
+     * Actualiza el precio por acción y las acciones disponibles en el
+     * mercado sin tocar la información de propiedad.
+     *
+     * @param c empresa con los datos de mercado actualizados.
+     */
     public void updateMarketInfo(CompanyData c) {
         if (c == null) return;
         valorAccionLabel.setText(
@@ -419,6 +525,12 @@ public class InvestmentPanel extends JPanel {
         accionesMercadoLabel.setText("Disponibles: " + disponibles);
     }
 
+    /**
+     * Refresca únicamente las etiquetas de acciones en propiedad y
+     * disponibles en el mercado tras una compra o venta.
+     *
+     * @param c empresa actualizada.
+     */
     public void refreshOwnership(CompanyData c) {
         if (c == null) return;
         accionesPropiedadLabel.setText("En propiedad: " + c.getAccionesPropiedad());
@@ -427,28 +539,81 @@ public class InvestmentPanel extends JPanel {
     }
 
     // ── Comprar ───────────────────────────────────────────
+    /**
+     * Establece el máximo del slider de compra.
+     *
+     * @param max número máximo de acciones comprables.
+     */
     public void setBuyMax(int max)       { buySlider.setMaximum(Math.max(0, max)); }
+    /**
+     * Establece el valor actual del slider de compra y sincroniza el
+     * campo de texto.
+     *
+     * @param v nuevo valor del slider.
+     */
     public void setBuyValue(int v)       { buySlider.setValue(v); buyField.setText(String.valueOf(v)); }
+    /**
+     * Actualiza la etiqueta de coste total de compra.
+     *
+     * @param cost coste calculado en la moneda del juego.
+     */
     public void setBuyCost(double cost)  { buyTotalLabel.setText(String.format("Coste: ₲%.2f", cost)); }
 
     // ── Vender ───────────────────────────────────────────
+    /**
+     * Establece el máximo del slider de venta.
+     *
+     * @param max número máximo de acciones vendibles (las que posee el jugador).
+     */
     public void setSellMax(int max)         { sellSlider.setMaximum(Math.max(0, max)); }
+    /**
+     * Establece el valor actual del slider de venta y sincroniza el
+     * campo de texto.
+     *
+     * @param v nuevo valor del slider.
+     */
     public void setSellValue(int v)         { sellSlider.setValue(v); sellField.setText(String.valueOf(v)); }
+    /**
+     * Actualiza la etiqueta de ingreso total de venta.
+     *
+     * @param income ingreso calculado en la moneda del juego.
+     */
     public void setSellIncome(double income){ sellTotalLabel.setText(String.format("Ingreso: ₲%.2f", income)); }
 
     // ── Getters de componentes ────────────────────────────
+     /** @return dropdown de selección de empresa. */
     public JComboBox<CompanyData> getCompanyDropdown() { return companyDropdown; }
+    /** @return slider de cantidad de acciones a comprar. */
     public JSlider    getBuySlider()    { return buySlider;  }
+    /** @return slider de cantidad de acciones a vender. */
     public JSlider    getSellSlider()   { return sellSlider; }
+    /** @return campo de texto numérico de compra. */
     public JTextField getBuyField()     { return buyField;   }
+    /** @return campo de texto numérico de venta. */
     public JTextField getSellField()    { return sellField;  }
+    /** @return botón de confirmar compra. */
     public JButton    getComprarButton(){ return comprarButton; }
+    /** @return botón de confirmar venta. */
     public JButton    getVenderButton() { return venderButton;  }
 
+    /**
+     * Cambia la empresa cuyo gráfico de velas se muestra en el panel central.
+     *
+     * @param id identificador de la nueva empresa.
+     */
     public void setChartEmpresa(int id) { chart.setEmpresaId(id); }
 
-    /** @deprecated Usar getBuySlider() */
+    /**
+     * @deprecated Usar {@link #getBuySlider()}.
+     * @return slider de compra.
+     */
+    @Deprecated
     public JSlider    getSlider()        { return buySlider; }
-    /** @deprecated Usar getBuyField() */
+    
+    /**
+     * @deprecated Usar {@link #getBuyField()}.
+     * @return campo de texto de compra.
+     */
+    @Deprecated
     public JTextField getAccionesField() { return buyField;  }
 }

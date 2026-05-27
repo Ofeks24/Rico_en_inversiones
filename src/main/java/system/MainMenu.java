@@ -24,6 +24,17 @@ import tools.ButtonSoundHelper;
 import tools.Screen;
 import tools.Utils;
 
+/**
+ * Pantalla del menú principal del juego.
+ *
+ * <p>Presenta el logotipo del juego centrado y tres botones de acción
+ * ({@code Empezar}, {@code Opciones}, {@code Salir}) alineados a la
+ * izquierda con animación de entrada tipo <em>ease-out-back</em> (efecto
+ * rebote) que se lanza cada vez que la pantalla se hace visible.</p>
+ *
+ * <p>Implementa {@link Screen} para responder al ciclo de vida gestionado
+ * por {@link tools.ScreenManager}.</p>
+ */
 public class MainMenu extends JPanel implements Screen {
 
 	private Runnable onStart;
@@ -49,6 +60,16 @@ public class MainMenu extends JPanel implements Screen {
 
     private final ImageIcon logoIcon = Utils.icon(ruta+"Rico en inversiones_logo.png");
 
+    /**
+     * Construye el menú principal registrando los callbacks de navegación y
+     * construyendo la interfaz de usuario.
+     *
+     * @param toGame    {@link Runnable} que navega a la pantalla de juego
+     *                  ({@code GAME}).
+     * @param toOptions {@link Runnable} que navega a la pantalla de opciones
+     *                  ({@code OPTIONS}).
+     * @param exit      {@link Runnable} que cierra la aplicación.
+     */
     public MainMenu(Runnable toGame, Runnable toOptions, Runnable exit) {
 
         this.onStart = toGame;
@@ -62,6 +83,11 @@ public class MainMenu extends JPanel implements Screen {
         
     }
 
+    /**
+     * Construye y configura todos los componentes visuales del menú:
+     * panel izquierdo con los botones, panel central con el logotipo,
+     * iconos de estado hover/click y sonidos de hover para cada botón.
+     */
     private void initUI() {
 
         setLayout(new BorderLayout());
@@ -120,6 +146,15 @@ public class MainMenu extends JPanel implements Screen {
         add(panelCentro, BorderLayout.CENTER);
     }
 
+    /**
+     * Crea un botón de menú con imágenes para los estados normal, hover y
+     * pulsado, sin borde ni fondo visible.
+     *
+     * @param texto Nombre del botón; determina la ruta de los recursos de
+     *              imagen ({@code texto(Normal).png}, {@code texto(Hover).png},
+     *              {@code texto(Click).png}).
+     * @return      {@link JButton} configurado y listo para añadir al panel.
+     */
     private JButton crearBoton(String texto) {
     	//int factor = 454;
         JButton b = new JButton(Utils.icon(ruta2+texto+"(Normal).png"));
@@ -136,6 +171,18 @@ public class MainMenu extends JPanel implements Screen {
         return b;
     }
     
+    /**
+     * Lanza la animación de entrada de los tres botones del menú.
+     *
+     * <p>Los botones comienzan fuera de pantalla (x = -700) y se deslizan
+     * hasta su posición de layout con una curva <em>ease-out-back</em> que
+     * produce un ligero rebote al llegar al destino. Cada botón tiene un
+     * retardo de 200 ms respecto al anterior (efecto cascada).</p>
+     *
+     * <p>El método utiliza {@link SwingUtilities#invokeLater} para asegurarse
+     * de que las posiciones finales de layout ya están calculadas antes de
+     * iniciar la animación.</p>
+     */
     private void startButtonsAnimation() {
 
         // Esperamos a que Swing termine el layout
@@ -216,12 +263,21 @@ public class MainMenu extends JPanel implements Screen {
         });
     }
 
+    /**
+     * Llamado por {@link tools.ScreenManager} cuando esta pantalla se hace
+     * visible. Reproduce la música del menú y lanza la animación de entrada
+     * de los botones.
+     */
     @Override
     public void onShow() {
         AudioManager.getInstance().playMusic("/main/resources/audio/music/Cambio-Pixelado.wav");
         startButtonsAnimation();
     }
 
+    /**
+     * Llamado por {@link tools.ScreenManager} cuando esta pantalla deja de
+     * ser visible. No realiza ninguna acción en la implementación actual.
+     */
 	@Override
 	public void onHide() {
 		// TODO Auto-generated method stub

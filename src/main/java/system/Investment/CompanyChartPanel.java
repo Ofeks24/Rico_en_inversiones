@@ -7,12 +7,23 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
+/**
+ * Panel Swing que dibuja un gráfico de velas japonesas (candlestick)
+ * en tiempo real para una empresa concreta.
+ *
+ * <p>Se suscribe al {@link MarketService} para repintarse automáticamente
+ * cada vez que el mercado emite un nuevo tick. Muestra como máximo
+ * {@value #MAX_CANDLES} velas simultáneas; las más antiguas se descartan
+ * a medida que se añaden nuevas. Bajo el área de velas se renderiza una
+ * barra de estadísticas con precio actual, variación porcentual respecto
+ * a la apertura del día y los extremos máximo/mínimo.</p>
+ */
 public class CompanyChartPanel extends JPanel {
 
     private final MarketService market;
     private int empresaId;
 
-    // Número máximo de velas visibles en pantalla
+    /** Número máximo de velas visibles en pantalla al mismo tiempo. */
     private static final int MAX_CANDLES = 30;
 
     // Colores
@@ -23,6 +34,14 @@ public class CompanyChartPanel extends JPanel {
     private static final Color STAT_BG   = new Color(25, 25, 25);
     private static final Color STAT_TEXT = new Color(200, 200, 200);
 
+    /**
+     * Construye el panel y registra un listener en el mercado para que
+     * el gráfico se actualice automáticamente con cada nuevo tick.
+     *
+     * @param market     servicio de mercado del que se obtiene el
+     *                   historial de velas y los precios en tiempo real.
+     * @param empresaId  identificador de la empresa cuyo gráfico se mostrará.
+     */
     public CompanyChartPanel(MarketService market, int empresaId) {
         this.market    = market;
         this.empresaId = empresaId;
@@ -32,11 +51,27 @@ public class CompanyChartPanel extends JPanel {
             SwingUtilities.invokeLater(this::repaint));
     }
 
+    /**
+     * Cambia la empresa cuyo gráfico se está mostrando y solicita un
+     * repintado inmediato.
+     *
+     * @param id identificador de la nueva empresa a visualizar.
+     */
     public void setEmpresaId(int id) {
         this.empresaId = id;
         repaint();
     }
 
+    /**
+     * Renderiza el gráfico completo: fondo, cuadrícula, velas y barra de
+     * estadísticas inferior.
+     *
+     * <p>El rango de precios se calcula dinámicamente a partir de las
+     * velas visibles, añadiendo un margen del 12 % arriba y abajo para
+     * que ninguna vela toque los bordes del panel.</p>
+     *
+     * @param g contexto gráfico proporcionado por Swing.
+     */
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

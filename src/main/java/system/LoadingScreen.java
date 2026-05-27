@@ -3,12 +3,30 @@ package system;
 import java.awt.*;
 import javax.swing.*;
 
+
+/**
+ * Pantalla de carga inicial que muestra el logotipo del juego con una
+ * animación de aparición gradual (fade-in).
+ *
+ * <p>El alpha del logo aumenta de 0 a 1 en pasos de 0,02 cada 30 ms.
+ * Al alcanzar la opacidad máxima, espera 2 segundos y ejecuta el
+ * callback {@code onFinish} para que {@link tools.ScreenManager} pase
+ * al menú principal.</p>
+ */
 public class LoadingScreen extends JPanel {
 
     private float alpha = 0f;
     private Image logo;
     private Runnable onFinish; // callback para cambiar de pantalla
 
+    /**
+     * Construye la pantalla de carga cargando el recurso del logotipo y
+     * almacenando el callback de finalización.
+     *
+     * @param onFinish {@link Runnable} que se invoca cuando la animación
+     *                 termina y el tiempo de espera ha transcurrido.
+     *                 Normalmente muestra la pantalla del menú principal.
+     */
     public LoadingScreen(Runnable onFinish) {
         this.onFinish = onFinish;
 
@@ -19,6 +37,12 @@ public class LoadingScreen extends JPanel {
         setFocusable(true);
     }
 
+    /**
+     * Pinta el fondo negro sólido y el logotipo centrado con el nivel de
+     * alpha actual, produciendo el efecto de fade-in.
+     *
+     * @param g Contexto gráfico proporcionado por el sistema Swing.
+     */
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -43,6 +67,14 @@ public class LoadingScreen extends JPanel {
         g2.dispose();
     }
 
+    /**
+     * Inicia la animación de fade-in del logotipo.
+     *
+     * <p>Un {@link Timer} incrementa el campo {@code alpha} cada 30 ms.
+     * Cuando {@code alpha} llega a 1,0 el timer se detiene y se programa
+     * otro timer de un solo disparo (2 000 ms) tras el cual se ejecuta
+     * {@code onFinish}.</p>
+     */
     public void startAnimation() {
         Timer timer = new Timer(30, null);
 
