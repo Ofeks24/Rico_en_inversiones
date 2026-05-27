@@ -23,9 +23,13 @@ tools\RoundedPanel.class
 system\Investment\InvestmentPanel.class
 tools\Candle.class
 system\Player.class
+system\News\NewsWindow$NoticiaCard.class
 tools\MarketService.class
 system\Investment\InvestmentWindow.class
+system\News\NewsWindow$2.class
+system\News\NewsWindow$DetallePanel.class
 system\News\NewsWindow.class
+system\News\NewsWindow$1.class
 main\MainProcess.class
 tools\NewsGenerator.class
 tools\Sector.class
@@ -39,6 +43,7 @@ tools\OpenAppWindow.class
 system\Investment\InvestmentPanel$3.class
 system\GraphBackgroundPanel.class
 system\MainFrame.class
+system\News\NewsWindow$NoticiaCard$1.class
 tools\LocalAI.class
 system\Investment\InvestmentController.class
 tools\AudioManager.class
@@ -48,5 +53,6 @@ system\GameWindow.class
 tools\BotonAjustable.class
 tools\NewsTemplateLoader.class
 tools\Date.class
+system\News\NewsWindow$DetallePanel$1.class
 tools\NewsTemplate.class
 tools\WindowManager$1.class
