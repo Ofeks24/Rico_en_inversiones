@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"database"},{"l":"main"},{"l":"system"},{"l":"system.Investment"},{"l":"system.News"},{"l":"system.Stats"},{"l":"tools"}];updateSearchResults();

@@ -107,7 +107,7 @@ public class GameWindow extends JPanel implements Screen {
         for (CompanyData c : companies)
             market.initCompany(c.getId(), c.getValorAccion());
 
-        time.addListener(() -> market.tick(companies));
+        market.startTicker(companies);
 
         GridBagConstraints gbc = new GridBagConstraints();
 
@@ -407,15 +407,19 @@ public class GameWindow extends JPanel implements Screen {
         AudioManager.getInstance()
             .playMusic("/main/resources/audio/music/Paso-de-Papel.wav");
         time.initClock(2000);
+        market.startTicker(companies);
     }
 
     /**
      * Llamado por {@link tools.ScreenManager} cuando esta pantalla deja de ser
-     * visible. Detiene el reloj del juego para pausar el avance del tiempo y
-     * del mercado.
+     * visible. Detiene el reloj del juego y el ticker del mercado para pausar
+     * el avance del tiempo y de los precios.
      */
     @Override
-    public void onHide() { time.detener(); }
+    public void onHide() {
+        time.detener();
+        market.stopTicker();
+    }
 
     /**
      * Escala un valor de referencia diseñado para una resolución base a la

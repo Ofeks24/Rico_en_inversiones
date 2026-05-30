@@ -6,15 +6,36 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+
+/**
+ * Gestor de ventanas internas ({@link JInternalFrame}) para el escritorio del juego.
+ * <p>
+ * Controla la apertura, el foco y el cierre de ventanas dentro de un
+ * {@link JDesktopPane}, evitando duplicados: si se intenta abrir una ventana
+ * ya existente, simplemente se le da el foco. Además, registra cada ventana
+ * en el {@link TaskBarManager} para que aparezca en la barra de tareas.
+ * </p>
+ */
 public class WindowManager {
 
+    /** Escritorio Swing sobre el que se gestionan las ventanas internas. */
     private final JDesktopPane desktop;
+
+    /** Desplazamiento acumulado en cascada para posicionar nuevas ventanas. */
     private int cascadeOffset = 0;
+
+    /** Gestor de la barra de tareas al que se registran y eliminan las ventanas. */
     private final TaskBarManager taskBarManager;
 
-    // ventanas abiertas
+    /** Mapa de id → ventana para controlar las ventanas abiertas. */
     private final Map<String, JInternalFrame> windows = new HashMap<>();
 
+    /**
+     * Construye un {@code WindowManager} asociado al escritorio y barra de tareas indicados.
+     *
+     * @param desktop        escritorio Swing donde se añaden las ventanas internas
+     * @param taskBarManager gestor de la barra de tareas del sistema
+     */
     public WindowManager(
             JDesktopPane desktop,
             TaskBarManager taskBarManager
@@ -24,10 +45,19 @@ public class WindowManager {
         this.taskBarManager = taskBarManager;
     }
 
-    // =====================================================
-    // ABRIR VENTANA
-    // =====================================================
-
+    /**
+     * Abre una ventana interna identificada por {@code id}.
+     * <p>
+     * Si la ventana ya está abierta, simplemente la trae al frente y le da el foco.
+     * En caso contrario, invoca el {@code creator} para construirla, la posiciona
+     * en cascada, la añade al escritorio y la registra en la barra de tareas.
+     * Al cerrarse, se elimina automáticamente del mapa interno.
+     * </p>
+     *
+     * @param id      identificador único de la ventana
+     * @param icon    icono que se mostrará en la barra de tareas
+     * @param creator proveedor que construye el {@link JInternalFrame} si no existe
+     */
     public void openWindow(
             String id,
             ImageIcon icon,
@@ -81,10 +111,12 @@ public class WindowManager {
         frame.setVisible(true);
     }
 
-    // =====================================================
-    // FOCUS
-    // =====================================================
-
+    /**
+     * Trae al frente la ventana indicada, la restaura si estaba minimizada
+     * y le otorga el foco.
+     *
+     * @param frame ventana interna a la que se dará el foco
+     */
     public void focusWindow(JInternalFrame frame) {
 
         try {
@@ -98,10 +130,12 @@ public class WindowManager {
         } catch (PropertyVetoException ignored) {}
     }
 
-    // =====================================================
-    // CERRAR
-    // =====================================================
-
+    /**
+     * Cierra y elimina la ventana registrada con el identificador dado.
+     * Si no existe ninguna ventana con ese id, el método no hace nada.
+     *
+     * @param id identificador de la ventana a cerrar
+     */
     public void closeWindow(String id) {
 
         JInternalFrame frame = windows.get(id);
@@ -113,14 +147,23 @@ public class WindowManager {
         windows.remove(id);
     }
 
-    // =====================================================
-    // GETTERS
-    // =====================================================
-
+    /**
+     * Indica si existe actualmente una ventana abierta con el identificador dado.
+     *
+     * @param id identificador de la ventana
+     * @return {@code true} si la ventana está abierta; {@code false} en caso contrario
+     */
     public boolean isOpen(String id) {
         return windows.containsKey(id);
     }
 
+    /**
+     * Devuelve la ventana interna asociada al identificador dado, o {@code null}
+     * si no existe ninguna ventana abierta con ese id.
+     *
+     * @param id identificador de la ventana
+     * @return el {@link JInternalFrame} correspondiente, o {@code null}
+     */
     public JInternalFrame getWindow(String id) {
         return windows.get(id);
     }

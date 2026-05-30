@@ -10,12 +10,43 @@ import java.util.List;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+
+/**
+ * Cargador de plantillas de noticias desde un fichero JSON externo.
+ * <p>
+ * Lee el archivo {@code news_templates.json} y construye la lista de
+ * {@link NewsTemplate} que el {@link NewsGenerator} usará para generar
+ * eventos de mercado durante la partida. El archivo se busca primero
+ * como recurso del classpath ({@code /main/resources/files/news_templates.json})
+ * y, si no se encuentra, como ruta relativa al directorio de trabajo.
+ * </p>
+ *
+ * <p>Formato esperado del JSON:</p>
+ * <pre>{@code
+ * {
+ *   "templates": [
+ *     {
+ *       "titulo":     "Titular con {empresa} y {pct}",
+ *       "cuerpo":     "Cuerpo con {marca} y {sector}",
+ *       "sector":     "NAVAL",
+ *       "impactoMin": -0.10,
+ *       "impactoMax":  0.10
+ *     }
+ *   ]
+ * }
+ * }</pre>
+ */
 public class NewsTemplateLoader {
 
     /**
-     * Carga las templates desde data/news_templates.json.
-     * El archivo se busca primero como recurso del classpath
-     * y si no, como ruta relativa al directorio de trabajo.
+     * Carga y devuelve todas las plantillas de noticias definidas en el JSON.
+     * <p>
+     * Si ocurre cualquier error de lectura o parseo, se imprime la traza
+     * en {@code System.err} y se devuelve una lista vacía en lugar de
+     * propagar la excepción.
+     * </p>
+     *
+     * @return lista de {@link NewsTemplate} cargadas; vacía si hubo un error
      */
     public static List<NewsTemplate> load() {
 

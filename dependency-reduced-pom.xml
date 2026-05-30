@@ -43,6 +43,17 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.6.3</version>
+        <configuration>
+          <outputDirectory>${project.build.directory}/javadoc</outputDirectory>
+          <show>private</show>
+          <encoding>UTF-8</encoding>
+          <charset>UTF-8</charset>
+          <docencoding>UTF-8</docencoding>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <properties>

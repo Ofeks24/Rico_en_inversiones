@@ -1,6 +1,5 @@
 package system.Investment;
 
-import system.Player;
 import system.Stats.StatsController;
 import tools.MarketService;
 

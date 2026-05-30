@@ -4,12 +4,31 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
+
+/**
+ * Panel de vista (la "V" del subsistema de estadísticas) que muestra al jugador
+ * el estado actual de su cartera de inversiones.
+ * <p>
+ * Contiene una lista scrollable de tarjetas, una por cada posición abierta,
+ * con el nombre de la empresa, número de acciones, valor actual y
+ * variación porcentual respecto al precio de compra. En la parte inferior
+ * se muestra el dinero disponible y el valor total de la cartera.
+ * </p>
+ * <p>
+ * No contiene lógica de negocio; únicamente recibe datos de
+ * {@link StatsController} a través de {@link #updatePortfolio}.
+ * </p>
+ */
 public class StatsPanel extends JPanel {
 
     private JPanel contentPanel;
     private JLabel dineroLabel;
     private JLabel totalLabel;
 
+    /**
+     * Construye el panel inicializando la estructura visual:
+     * scroll con tarjetas de posiciones y barra inferior de totales.
+     */
     public StatsPanel() {
         setLayout(new BorderLayout());
         setBackground(new Color(245, 247, 250));
@@ -48,7 +67,21 @@ public class StatsPanel extends JPanel {
         add(sur, BorderLayout.SOUTH);
     }
 
-    // ── Actualizar desde el controller ───────────────────
+    /**
+     * Actualiza completamente la vista con los datos más recientes de la cartera.
+     * <p>
+     * Limpia el panel de contenido y lo repuebla con una tarjeta por cada
+     * posición de {@code portfolio}. Si la cartera está vacía, muestra un
+     * mensaje informativo. Actualiza también las etiquetas de totales.
+     * </p>
+     * <p>
+     * Debe llamarse siempre desde el Event Dispatch Thread (EDT).
+     * </p>
+     *
+     * @param portfolio lista de posiciones abiertas del jugador
+     * @param total     valor total de la cartera a precios de mercado (₲)
+     * @param dinero    dinero líquido disponible del jugador (₲)
+     */
     public void updatePortfolio(List<PortfolioEntry> portfolio,
                                 double total,
                                 double dinero) {
@@ -75,7 +108,17 @@ public class StatsPanel extends JPanel {
         repaint();
     }
 
-    // ── Tarjeta visual de cada posición ──────────────────
+    /**
+     * Crea la tarjeta visual para una posición de cartera individual.
+     * <p>
+     * La tarjeta muestra a la izquierda el nombre y número de acciones,
+     * y a la derecha el valor actual y el porcentaje de ganancia o pérdida
+     * con color verde (beneficio) o rojo (pérdida).
+     * </p>
+     *
+     * @param p la entrada de cartera a representar
+     * @return panel con el diseño de tarjeta listo para añadir al scroll
+     */
     private JPanel createEntry(PortfolioEntry p) {
 
         JPanel card = new JPanel(new BorderLayout(8, 0));

@@ -17,13 +17,30 @@ import tools.NewsGenerator;
 import tools.Screen;
 import tools.Sector;
 
+
+/**
+ * Ventana principal del periódico "Telégrafo de Montecristo".
+ * <p>
+ * Simula la portada de un periódico de época con cinco noticias: dos en la
+ * fila superior, una destacada en el centro y dos en la fila inferior.
+ * Cada cierto tiempo (configurable con {@code timeToUpdate}) se genera una
+ * nueva tanda de noticias mediante {@link tools.NewsGenerator} y se aplican
+ * sus efectos al mercado con {@link tools.MarketService#applyNews}.
+ * </p>
+ * <p>
+ * Al hacer clic en cualquier titular se navega a una vista de detalle
+ * ({@link DetallePanel}) que muestra el artículo completo con imagen.
+ * Implementa {@link tools.Screen} para detener el temporizador de
+ * actualización cuando la ventana se cierra u oculta.
+ * </p>
+ */
 public class NewsWindow extends JPanel implements Screen {
 
     private Timer toUpdate;
 
     // ── Paleta ────────────────────────────────────────────
-    static final Color C_BG      = new Color(235, 220, 190);
-    static final Color C_SECTION = new Color(222, 205, 175);
+    static final Color C_BG      = new Color(222, 205, 175);
+    static final Color C_SECTION = new Color(235, 212, 175);
     static final Color C_BORDER  = new Color(60,  45,  30);
     static final Color C_TITLE   = new Color(40,  25,  15);
     static final Color C_TEXT    = new Color(60,  45,  30);
@@ -34,19 +51,26 @@ public class NewsWindow extends JPanel implements Screen {
     private static final String LOGOS = "/main/resources/empresas/";
 
     /**
-     * Devuelve la ruta de la imagen a mostrar al pie de cada noticia,
-     * según el sector al que pertenece.
-     * Los nombres de archivo deben existir en src/main/resources/logos/.
+     * Devuelve la ruta del recurso de imagen que ilustra una noticia
+     * según su sector económico.
+     * <p>
+     * Actualmente todas las rutas apuntan al mismo recurso genérico
+     * ({@code DORADO.png}); el método está preparado para asignar
+     * imágenes distintas por sector en el futuro.
+     * </p>
+     *
+     * @param s sector de la noticia; si es {@code null} se usa la imagen por defecto
+     * @return ruta del recurso de imagen en el classpath
      */
     static String imagenPorSector(Sector s) {
         if (s == null) return LOGOS + "DORADO.png";
         return switch (s) {
-            case NAVAL       -> LOGOS + "DORADO.png";
-            case INDUSTRIA   -> LOGOS + "DORADO.png";
-            case BOTANICA    -> LOGOS + "DORADO.png";
-            case AGRICULTURA -> LOGOS + "DORADO.png";
-            case MANUFACTURA -> LOGOS + "DORADO.png";
-            case GLOBAL      -> LOGOS + "DORADO.png";
+            case NAVAL       -> LOGOS + "DORADO(1).png";
+            case INDUSTRIA   -> LOGOS + "MECHANIQUE(1).png";
+            case BOTANICA    -> LOGOS + "BOTANICA_ATLANTE(1).png";
+            case AGRICULTURA -> LOGOS + "MOLINOS(1).png";
+            case MANUFACTURA -> LOGOS + "JABONES(1).png";
+            case GLOBAL      -> LOGOS + "BlasonMontecristo(3).png";
         };
     }
 
@@ -61,10 +85,22 @@ public class NewsWindow extends JPanel implements Screen {
     private final JPanel      root;     // portada
     private final DetallePanel detalle; // vista de artículo completo
 
-    // =====================================================
-    // CONSTRUCTOR
-    // =====================================================
-
+    /**
+     * Construye la ventana del periódico y arranca el temporizador de
+     * actualización automática de noticias.
+     * <p>
+     * Genera una primera tanda de noticias inmediatamente y programa
+     * las siguientes con el intervalo indicado.
+     * </p>
+     *
+     * @param timeToUpdate intervalo en milisegundos entre generaciones de
+     *                     nuevas noticias (ej. {@code 10000} = cada 10 s)
+     * @param market       servicio de mercado al que se aplican los efectos
+     *                     de cada noticia generada
+     * @param newsGen      generador de noticias que usa las plantillas JSON
+     * @param companies    lista de empresas disponibles para personalizar
+     *                     los titulares con nombres y sectores reales
+     */
     public NewsWindow(int timeToUpdate,
                       MarketService market,
                       NewsGenerator newsGen,
@@ -108,10 +144,15 @@ public class NewsWindow extends JPanel implements Screen {
         toUpdate.start();
     }
 
-    // =====================================================
-    // LAYOUT PROPORCIONAL  (portada)
-    // =====================================================
-
+    /**
+     * Calcula el layout proporcional de los cinco slots de noticia
+     * en función del tamaño actual del panel raíz.
+     * <p>
+     * Se llama automáticamente cada vez que el componente cambia de tamaño
+     * gracias al {@link java.awt.event.ComponentListener} registrado en el
+     * constructor.
+     * </p>
+     */
     private void layoutPortada() {
         int W = root.getWidth();
         int H = root.getHeight();
@@ -146,10 +187,13 @@ public class NewsWindow extends JPanel implements Screen {
         root.getComponent(5).setBounds(pad + halfW + gap, y, halfW, hBot);
     }
 
-    // =====================================================
-    // CABECERA DEL PERIÓDICO
-    // =====================================================
-
+    /**
+     * Construye y devuelve la cabecera decorativa del periódico,
+     * con el nombre "Telégrafo de Montecristo", separadores horizontales
+     * y la línea de edición en cursiva.
+     *
+     * @return panel con la cabecera maquetada
+     */
     private JPanel buildHeader() {
         JPanel h = new JPanel(new GridBagLayout());
         h.setBackground(C_HEADER);
@@ -189,10 +233,18 @@ public class NewsWindow extends JPanel implements Screen {
         return h;
     }
 
-    // =====================================================
-    // PUBLICAR TANDA
-    // =====================================================
-
+    /**
+     * Genera una nueva tanda de cinco noticias, aplica sus efectos al
+     * mercado y actualiza cada slot de la portada.
+     * <p>
+     * Se invoca en el constructor y periódicamente por el {@link Timer}
+     * interno de la ventana.
+     * </p>
+     *
+     * @param market    servicio de mercado para aplicar los impactos
+     * @param newsGen   generador que produce cada {@link tools.NewsEvent}
+     * @param companies lista de empresas con las que se personalizan los textos
+     */
     private void publicarTanda(MarketService market,
                                NewsGenerator newsGen,
                                List<CompanyData> companies) {
@@ -206,10 +258,16 @@ public class NewsWindow extends JPanel implements Screen {
         root.repaint();
     }
 
-    // =====================================================
-    // CARD DE PORTADA  — solo titular, clicable
-    // =====================================================
-
+    /**
+     * Tarjeta clicable de portada que muestra únicamente el titular de una noticia.
+     * <p>
+     * Al hacer doble clic (o clic simple, según el listener) sobre la tarjeta
+     * se invoca el callback {@code onClick} con el {@link tools.NewsEvent}
+     * correspondiente para que {@link NewsWindow} navegue al {@link DetallePanel}.
+     * La tarjeta central se renderiza en tamaño destacado con separadores y
+     * fleuron decorativo.
+     * </p>
+     */
     private static class NoticiaCard extends JPanel {
 
         private final JLabel          tituloLabel;
@@ -217,6 +275,14 @@ public class NewsWindow extends JPanel implements Screen {
         private final Consumer<NewsEvent> onClick;
         private       NewsEvent        eventoActual;
 
+        /**
+         * Construye la tarjeta con el estilo visual adecuado.
+         *
+         * @param importante {@code true} para el slot central (mayor tamaño
+         *                   y decoración adicional); {@code false} para los laterales
+         * @param onClick    acción a ejecutar cuando el usuario hace clic,
+         *                   recibiendo el {@link tools.NewsEvent} actual de la tarjeta
+         */
         NoticiaCard(boolean importante, Consumer<NewsEvent> onClick) {
             this.importante = importante;
             this.onClick    = onClick;
@@ -299,6 +365,15 @@ public class NewsWindow extends JPanel implements Screen {
             });
         }
 
+        /**
+         * Actualiza la tarjeta con los datos de la noticia indicada.
+         * <p>
+         * Actualiza el texto del titular y almacena la referencia al evento
+         * para pasárselo al callback al hacer clic.
+         * </p>
+         *
+         * @param ev el evento de noticia a mostrar
+         */
         void setNoticia(NewsEvent ev) {
             eventoActual = ev;
             tituloLabel.setText(
@@ -308,10 +383,15 @@ public class NewsWindow extends JPanel implements Screen {
         }
     }
 
-    // =====================================================
-    // PANEL DE DETALLE — artículo completo a pantalla llena
-    // =====================================================
-
+    /**
+     * Panel de detalle que ocupa la pantalla completa y muestra un artículo
+     * de prensa al completo: nombre del periódico, titular, cuerpo de texto
+     * e imagen ilustrativa.
+     * <p>
+     * Incluye un botón "← Volver" que invoca un callback para regresar
+     * a la portada del periódico mediante el {@link CardLayout} padre.
+     * </p>
+     */
     private static class DetallePanel extends JPanel {
 
         // Campos actualizables
@@ -322,6 +402,12 @@ public class NewsWindow extends JPanel implements Screen {
         // Referencia al viewport para resetear el scroll al mostrar una noticia
         private final JScrollPane mainScroll;
 
+        /**
+         * Construye el panel de detalle con su estructura visual completa.
+         *
+         * @param onVolver acción que se ejecuta al pulsar el botón "Volver",
+         *                 normalmente {@code () -> cardLayout.show(switcher, "PORTADA")}
+         */
         DetallePanel(Runnable onVolver) {
             setLayout(new BorderLayout());
             setBackground(C_BG);
@@ -391,7 +477,12 @@ public class NewsWindow extends JPanel implements Screen {
             columna.setLayout(new BoxLayout(columna, BoxLayout.Y_AXIS));
             columna.setBackground(C_SECTION);
             columna.setBorder(new EmptyBorder(36, 80, 36, 80));
-
+            
+            // Imagen grande centrada
+            imagenLabel = new JLabel("", SwingConstants.CENTER);
+            imagenLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            columna.add(imagenLabel);
+            
             // Texto del artículo
             cuerpoArea = new JTextArea();
             cuerpoArea.setFont(new Font("Serif", Font.PLAIN, 22));
@@ -407,17 +498,14 @@ public class NewsWindow extends JPanel implements Screen {
 
             // Separador decorativo entre texto e imagen
             columna.add(Box.createVerticalStrut(32));
-            JSeparator sepH = new JSeparator(SwingConstants.HORIZONTAL);
-            sepH.setForeground(C_BORDER);
-            sepH.setMaximumSize(new Dimension(Integer.MAX_VALUE, 2));
-            sepH.setAlignmentX(Component.CENTER_ALIGNMENT);
-            columna.add(sepH);
-            columna.add(Box.createVerticalStrut(32));
+            //JSeparator sepH = new JSeparator(SwingConstants.HORIZONTAL);
+            //sepH.setForeground(C_BORDER);
+            //sepH.setMaximumSize(new Dimension(Integer.MAX_VALUE, 2));
+            //sepH.setAlignmentX(Component.CENTER_ALIGNMENT);
+            //columna.add(sepH);
+            //columna.add(Box.createVerticalStrut(32));
 
-            // Imagen grande centrada
-            imagenLabel = new JLabel("", SwingConstants.CENTER);
-            imagenLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            columna.add(imagenLabel);
+            
 
             // Fleuron al pie de la imagen
             columna.add(Box.createVerticalStrut(18));
@@ -448,6 +536,12 @@ public class NewsWindow extends JPanel implements Screen {
         }
 
         // ── Rellenar con datos del NewsEvent ──────────────
+        /**
+         * Rellena el panel con los datos del evento de noticia indicado y
+         * resetea el scroll al inicio del artículo.
+         *
+         * @param ev el evento de noticia cuyo artículo se va a mostrar
+         */
         void mostrar(NewsEvent ev) {
             // Titular
             titularLabel.setText(
@@ -470,6 +564,16 @@ public class NewsWindow extends JPanel implements Screen {
             repaint();
         }
 
+        /**
+         * Carga y escala la imagen ilustrativa correspondiente al sector de la
+         * noticia, mostrándola centrada bajo el cuerpo del artículo.
+         * <p>
+         * Si el recurso no existe o no puede cargarse, oculta la imagen
+         * sin lanzar excepción.
+         * </p>
+         *
+         * @param sector sector de la noticia cuya imagen se va a mostrar
+         */
         private void cargarImagen(Sector sector) {
             String ruta = imagenPorSector(sector);
             try {
@@ -501,10 +605,16 @@ public class NewsWindow extends JPanel implements Screen {
         }
     }
 
-    // =====================================================
-    // Screen interface
-    // =====================================================
-
+    /**
+     * No realiza ninguna acción al mostrarse.
+     * {@inheritDoc}
+     */
     @Override public void onShow() {}
+    
+    /**
+     * Detiene el temporizador de actualización automática para evitar
+     * que siga generando noticias y consumiendo CPU en segundo plano.
+     * {@inheritDoc}
+     */
     @Override public void onHide() { if (toUpdate != null) toUpdate.stop(); }
 }
