@@ -1,6 +1,9 @@
 package system.Investment;
 
+import java.util.List;
+
 import system.Stats.StatsController;
+import tools.CompanyData;
 import tools.MarketService;
 
 
@@ -32,9 +35,12 @@ public class InvestmentWindow {
      *               tiempo real y el gráfico de velas.
      * @return {@link InvestmentPanel} listo para mostrarse en pantalla.
      */
-	public static InvestmentPanel create(StatsController stats, MarketService market) {
+	public static InvestmentPanel create(
+			StatsController stats, 
+			MarketService market,
+			List<CompanyData> companies) {
 		
-		InvestmentModel model = new InvestmentModel();
+		InvestmentModel model = new InvestmentModel(companies);
         
         int idInicial = model.getCompanies().isEmpty() ? -1 : model.getCompanies().get(0).getId();
 

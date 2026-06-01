@@ -36,7 +36,7 @@ public class MarketService {
     private Timer ticker;
 
     /** Intervalo actual del ticker en milisegundos. */
-    private int tickIntervalMs = 10000;
+    private int tickIntervalMs = 2000;
 
     /**
      * Inicializa el historial de velas y el precio de apertura de una empresa.

@@ -284,7 +284,7 @@ public class GameWindow extends JPanel implements Screen {
                     case "Robbin Hub" ->
                         abrirWindow(texto,
                             Utils.escalarIcono(ruta + "RobbinHub(icono).png", 25),
-                            InvestmentWindow.create(statsController, market));
+                            InvestmentWindow.create(statsController, market, companies));
 
                     case "Telégrafo de Montecristo" ->
                         abrirWindow(texto,

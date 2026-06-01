@@ -135,8 +135,6 @@ public class InvestmentController {
         int owned = statsController.getOwnedShares(c.getId());
         c.setAccionesPropiedad(owned);
 
-        accionesComprar = 0;
-        accionesVender  = 0;
         updateView();
     }
 
@@ -157,13 +155,11 @@ public class InvestmentController {
         view.setBuyMax(maxBuy);
         view.setSellMax(maxSell);
 
-        view.setBuyValue(0);
-        view.setSellValue(0);
-        accionesComprar = 0;
-        accionesVender  = 0;
+        view.setBuyValue(accionesComprar);
+        view.setSellValue(accionesVender);
 
-        view.setBuyCost(0);
-        view.setSellIncome(0);
+        view.setBuyCost(calcBuyCost());
+        view.setSellIncome(calcSellIncome());
     }
 
     /**

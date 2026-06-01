@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class InvestmentModel {
 
-    private final List<CompanyData> companies;
+    private List<CompanyData> companies;
 
     private CompanyData selectedCompany;
 
@@ -28,9 +28,8 @@ public class InvestmentModel {
      * Crea el modelo cargando todas las empresas desde la base de datos
      * y preseleccionando la primera de la lista.
      */
-    public InvestmentModel() {
-        CompanyRepository repo = new CompanyRepository();
-        companies = repo.getAllCompanies();
+    public InvestmentModel(List<CompanyData> companies) {
+        this.companies=companies;
         if (!companies.isEmpty())
             selectedCompany = companies.get(0);
     }
