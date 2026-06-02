@@ -29,6 +29,19 @@ public class MarketService {
     private final List<Runnable>             listeners = new ArrayList<>();
     private final Random rng = new Random();
 
+    /**
+     * Controla el modo de disparo de los ticks del mercado.
+     * <p>
+     * {@code true}  → el mercado usa su propio {@link Timer} interno con el
+     *                 intervalo configurado en {@link #tickIntervalMs}.<br>
+     * {@code false} → el ticker interno permanece desactivado; los ticks
+     *                 deben dispararse externamente (p. ej. desde el listener
+     *                 del {@link tools.Clock} registrado en
+     *                 {@link system.GameWindow}).
+     * </p>
+     */
+    public static final boolean USE_INTERNAL_TICKER = false;
+
     /** Lista de empresas sobre la que opera el ticker interno. */
     private List<CompanyData> trackedCompanies;
 
@@ -79,6 +92,7 @@ public class MarketService {
      */
     public void startTicker(List<CompanyData> companies) {
         this.trackedCompanies = companies;
+        if (!USE_INTERNAL_TICKER) return;          // modo reloj: sin Timer propio
         if (ticker != null && ticker.isRunning()) return;
         ticker = new Timer(tickIntervalMs, e -> tick(trackedCompanies));
         ticker.start();
@@ -87,8 +101,13 @@ public class MarketService {
     /**
      * Detiene el temporizador interno del mercado sin perder el estado
      * de precios ni el historial de velas.
+     * <p>
+     * No hace nada cuando {@link #USE_INTERNAL_TICKER} es {@code false},
+     * ya que en ese modo no existe Timer interno que detener.
+     * </p>
      */
     public void stopTicker() {
+        if (!USE_INTERNAL_TICKER) return;
         if (ticker != null) ticker.stop();
     }
 

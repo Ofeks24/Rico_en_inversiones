@@ -193,4 +193,14 @@ public class Clock {
 	public void addListener(Runnable r) {
 	    listeners.add(r);
 	}
+
+	/**
+     * Elimina un listener previamente registrado con {@link #addListener(Runnable)}.
+     * Si el listener no estaba registrado, el método no hace nada.
+     *
+     * @param r tarea a eliminar
+     */
+	public void removeListener(Runnable r) {
+	    listeners.remove(r);
+	}
 }

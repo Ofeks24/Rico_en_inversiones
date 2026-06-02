@@ -75,6 +75,9 @@ public class GameWindow extends JPanel implements Screen {
     private WindowManager windowManager;
     private TaskBarManager taskBarManager;
 
+    /** Listener de reloj que dispara el tick del mercado en modo reloj. */
+    private Runnable clockMarketListener;
+
     private final String ruta  = "/main/resources/logos/";
     private final MarketService  market   = new MarketService();
     private final NewsGenerator  newsGen  = new NewsGenerator();
@@ -407,7 +410,13 @@ public class GameWindow extends JPanel implements Screen {
         AudioManager.getInstance()
             .playMusic("/main/resources/audio/music/Paso-de-Papel.wav");
         time.initClock(2000);
-        market.startTicker(companies);
+        market.startTicker(companies);   // en modo reloj solo guarda la referencia
+
+        // Si el ticker interno está desactivado, el Clock dispara los ticks
+        if (!MarketService.USE_INTERNAL_TICKER) {
+            clockMarketListener = () -> market.tick(companies);
+            time.addListener(clockMarketListener);
+        }
     }
 
     /**
@@ -418,7 +427,13 @@ public class GameWindow extends JPanel implements Screen {
     @Override
     public void onHide() {
         time.detener();
-        market.stopTicker();
+        market.stopTicker();             // no-op en modo reloj
+
+        // En modo reloj eliminamos el listener del Clock
+        if (!MarketService.USE_INTERNAL_TICKER && clockMarketListener != null) {
+            time.removeListener(clockMarketListener);
+            clockMarketListener = null;
+        }
     }
 
     /**
