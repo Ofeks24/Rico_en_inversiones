@@ -44,7 +44,6 @@ system\Investment\InvestmentPanel$3.class
 system\GraphBackgroundPanel.class
 system\MainFrame.class
 system\News\NewsWindow$NoticiaCard$1.class
-tools\LocalAI.class
 system\Investment\InvestmentController.class
 tools\AudioManager.class
 database\DatabaseManager.class
